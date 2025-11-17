@@ -110,7 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: downidle
+      name: idle_down
       rect:
         serializedVersion: 2
         x: 10
@@ -118,7 +118,7 @@ TextureImporter:
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -131,15 +131,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: downleft1
+      name: walk_down_2
       rect:
         serializedVersion: 2
         x: 266
-        y: 306
+        y: 305
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -152,7 +152,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: downright1
+      name: walk_downleft_1
       rect:
         serializedVersion: 2
         x: 529
@@ -160,7 +160,7 @@ TextureImporter:
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -173,7 +173,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: downend
+      name: walk_downright_1
       rect:
         serializedVersion: 2
         x: 795
@@ -181,7 +181,7 @@ TextureImporter:
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -204,10 +204,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      downend: 247160399
-      downidle: -615613912
-      downleft1: -638694451
-      downright1: -263345652
+      idle_down: -615613912
+      walk_down_2: -638694451
+      walk_downleft_1: -263345652
+      walk_downright_1: 247160399
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

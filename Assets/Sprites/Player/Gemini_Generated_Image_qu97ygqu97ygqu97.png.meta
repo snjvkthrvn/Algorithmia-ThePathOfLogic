@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 9255841ba91da41b9870f1e50794e951
+guid: 26115761036f247db803372ce0fdc8a7
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,85 +110,22 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: walk_up_1
+      name: leftidle
       rect:
         serializedVersion: 2
-        x: 17
+        x: 742
         y: 311
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3f1d75d44488d444eaf39d69f38a5437
-      internalID: 259406138
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: walk_up_2
-      rect:
-        serializedVersion: 2
-        x: 270
-        y: 309
-        width: 226
-        height: 339
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 3dd2eeafba95a4bd396a6ec207df7de9
-      internalID: 1221704067
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: walk_up_3
-      rect:
-        serializedVersion: 2
-        x: 527
-        y: 308
-        width: 226
-        height: 339
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 14f55d19509eb415da340c14d64603b5
-      internalID: 1953129772
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: idle_up
-      rect:
-        serializedVersion: 2
-        x: 790
-        y: 323
-        width: 226
-        height: 339
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: f1bf7028893764599b6c7776db5a9bac
-      internalID: 275656963
+      spriteID: ca8443438cdff4d6b813d16f37226cb5
+      internalID: 866166096
       vertices: []
       indices: 
       edges: []
@@ -204,10 +141,7 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      idle_up: 275656963
-      walk_up_1: 259406138
-      walk_up_2: 1221704067
-      walk_up_3: 1953129772
+      leftidle: 866166096
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

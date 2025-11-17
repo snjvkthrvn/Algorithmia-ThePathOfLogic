@@ -110,7 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: leftidle
+      name: walk_right_1
       rect:
         serializedVersion: 2
         x: 8
@@ -118,7 +118,7 @@ TextureImporter:
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -131,7 +131,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: left1
+      name: walk_right_2
       rect:
         serializedVersion: 2
         x: 258
@@ -139,7 +139,7 @@ TextureImporter:
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -152,7 +152,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: left2
+      name: walk_right_3
       rect:
         serializedVersion: 2
         x: 531
@@ -160,7 +160,7 @@ TextureImporter:
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -173,7 +173,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: leftend
+      name: idle_right
       rect:
         serializedVersion: 2
         x: 767
@@ -181,7 +181,7 @@ TextureImporter:
         width: 226
         height: 339
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -204,10 +204,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      left1: 1827004309
-      left2: 1730339229
-      leftend: 1345021980
-      leftidle: -1167422309
+      idle_right: 1345021980
+      walk_right_1: -1167422309
+      walk_right_2: 1827004309
+      walk_right_3: 1730339229
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

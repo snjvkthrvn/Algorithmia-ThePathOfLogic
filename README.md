@@ -1,120 +1,47 @@
-# Algorithmia: The Path of Logic (Web Edition)
+# Algorithmia: The Path of Logic - Unity Project
 
-An educational puzzle-adventure web game that teaches Data Structures & Algorithms through engaging gameplay, not lectures.
+## 📁 What's in This Folder
 
-## 🎮 Game Concept
+This is your **Unity project folder**. All essential files have been copied here:
 
-Learn DSA concepts by solving spatial puzzles, experiencing algorithmic patterns through interactive gameplay, then understanding the theory through Professor Node's explanations. Build your "DSA Pokédex" (Codex) as you master each concept.
+### ✅ Scripts (Ready to Use)
+- `Assets/Scripts/Managers/` - 7 manager scripts (GameState, PuzzleManager, etc.)
+- `Assets/Scripts/Player/` - PlayerController script
+- `Assets/Scripts/UI/` - DialogueBox and CodexUI scripts
+
+### ✅ Documentation
+- `algorithmia_full_docs.md` - Complete game design document
+- `BUILD_ROADMAP.md` - Step-by-step build guide
+- `UNITY_SETUP.md` - Unity-specific setup instructions
+- `QUICK_START.md` - Quick reference
+- `AI_AGENT_ONBOARDING.md` - Guide for AI assistants
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+ and npm
+1. **Open this folder in Unity** (File → Open Project)
+2. **Check Console** - Scripts should auto-compile
+3. **Follow `UNITY_SETUP.md`** for detailed setup
+4. **Or follow `QUICK_START.md`** for fast setup
 
-### Installation
+## 📋 Next Steps
 
-```bash
-# Install dependencies
-npm install
+1. Create manager GameObjects (see UNITY_SETUP.md)
+2. Import assets from `/Users/sanjeevkathiravan/AlgorithmiaPathOfLogic/assets/`
+3. Create Player prefab
+4. Create UI prefabs
+5. Test!
 
-# Start development server
-npm run dev
+## 🆘 Need Help?
 
-# Build for production
-npm run build
+- **Read `AI_AGENT_ONBOARDING.md`** - Complete project overview
+- **Check `BUILD_ROADMAP.md`** - Phase-by-phase guide
+- **Reference `algorithmia_full_docs.md`** - All game specifications
 
-# Preview production build
-npm run preview
-```
+## 📦 Assets Location
 
-The game will be available at `http://localhost:5173`
+Your sprite sheets are in:
+- `/Users/sanjeevkathiravan/AlgorithmiaPathOfLogic/assets/sprites/characters/char_000.png`
+- `/Users/sanjeevkathiravan/AlgorithmiaPathOfLogic/assets/tiles/tile_000.png`
 
-## 🏗️ Tech Stack
+Import these into Unity when ready!
 
-- **Frontend:** React 18 + TypeScript + Vite
-- **Game Engine:** Phaser 3 (HTML5 2D game framework)
-- **State Management:** Zustand
-- **Styling:** Tailwind CSS
-- **Build Tool:** Vite
-- **Code Quality:** ESLint + Prettier
-
-## 📁 Project Structure
-
-```
-algorithmia-web/
-├── public/
-│   └── assets/           # Game assets (sprites, audio)
-├── src/
-│   ├── components/       # React UI components
-│   ├── game/            # Phaser game code
-│   │   ├── scenes/      # Phaser scenes
-│   │   ├── entities/    # Game objects (Player, NPCs)
-│   │   ├── systems/     # Game systems
-│   │   └── config/      # Game configuration
-│   ├── store/           # Zustand state management
-│   ├── hooks/           # Custom React hooks
-│   ├── services/        # API services
-│   └── types/           # TypeScript types
-└── docs/                # Documentation
-```
-
-## 🎯 Current Status
-
-**Phase 0: Setup & Planning** ✅
-- [x] Project scaffolding
-- [x] Phaser 3 integration
-- [x] Basic scene management (Boot, Menu, Game)
-- [x] Player movement system (placeholder)
-- [x] State management setup
-- [x] Tailwind CSS configuration
-
-**Next Steps:**
-- Migrate player sprites from Unity
-- Implement player animations
-- Build first puzzle (Sorting Tiles)
-- Create dialogue system
-
-## 📚 Documentation
-
-- [Product Requirements Document](./WEB_APP_PRD.md) - Complete migration plan and roadmap
-- [Game Design Document](./ALGORITHMIA_ONBOARDING_DOCUMENT.md) - Educational framework and concepts
-- [Development Guide](./ONBOARDING.md) - Project overview and architecture
-
-## 🎮 Controls
-
-- **Movement:** WASD or Arrow Keys
-- **Interact:** E (coming soon)
-- **Menu:** ESC
-- **Codex:** C (coming soon)
-
-## 🛠️ Development
-
-### Code Formatting
-```bash
-npm run format    # Format with Prettier
-npm run lint      # Run ESLint
-```
-
-### Building
-```bash
-npm run build     # Production build
-npm run preview   # Preview production build
-```
-
-## 🤝 Contributing
-
-See [GITHUB_SETUP.md](./GITHUB_SETUP.md) for contribution guidelines.
-
-## 📝 License
-
-Educational project - MIT License
-
-## 🎓 Educational Mission
-
-Algorithmia makes learning algorithms fun and accessible. No prior coding experience needed - learn through play!
-
----
-
-**Target Audience:** CS students, bootcamp learners, self-taught programmers, interview prep
-
-**Concepts Covered:** Sorting, Searching, Two Pointers, Sliding Window, Trees, Graphs, and more!

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BootScene } from '../scenes/BootScene';
 import { MenuScene } from '../scenes/MenuScene';
 import { GameScene } from '../scenes/GameScene';
+import { Puzzle_P0_1_Scene } from '../scenes/Puzzle_P0_1_Scene';
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -20,7 +21,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, MenuScene, GameScene],
+  scene: [BootScene, MenuScene, GameScene, Puzzle_P0_1_Scene],
   pixelArt: true,
   antialias: false,
 };

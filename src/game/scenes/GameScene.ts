@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
+import { Player } from '../entities/Player';
 
 export class GameScene extends Phaser.Scene {
-  private player?: Phaser.Physics.Arcade.Sprite;
+  private player?: Player;
+  private walls?: Phaser.Physics.Arcade.StaticGroup;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd?: {
     W: Phaser.Input.Keyboard.Key;
@@ -9,7 +11,6 @@ export class GameScene extends Phaser.Scene {
     S: Phaser.Input.Keyboard.Key;
     D: Phaser.Input.Keyboard.Key;
   };
-  private readonly moveSpeed = 160;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -26,15 +27,27 @@ export class GameScene extends Phaser.Scene {
     // Add a grid for visual reference
     this.createGrid(width, height);
 
+    // Create physics group for walls
+    this.walls = this.physics.add.staticGroup();
+
+    // Create a simple tile world
+    this.createTileWorld();
+
+    // Test: Display loaded sprite
+    
+
     // Create placeholder player (circle for now)
-    this.player = this.physics.add.sprite(width / 2, height / 2, '');
-    this.player.setCircle(16);
-    this.player.setDisplaySize(32, 32);
+    // Create player
+    this.player = new Player(this, width / 2, height / 2);
+    this.physics.add.collider(this.player, this.walls!);
+
+    // Setup camera to follow player
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
     // Draw a simple circle as placeholder
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x667eea, 1);
-    graphics.fillCircle(width / 2, height / 2, 16);
+    //const graphics = this.add.graphics();
+    //graphics.fillStyle(0x667eea, 1);
+    //graphics.fillCircle(width / 2, height / 2, 16);
 
     // Setup input
     if (this.input.keyboard) {
@@ -66,39 +79,19 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-ESC', () => {
       this.scene.start('MenuScene');
     });
+    
+    // P to start puzzle (for testing)
+    this.input.keyboard?.on('keydown-P', () => {
+      this.scene.start('Puzzle_P0_1_Scene');
+});
   }
 
   update(): void {
-    if (!this.player || !this.cursors || !this.wasd) return;
+  if (!this.player || !this.cursors || !this.wasd) return;
 
-    // Reset velocity
-    this.player.setVelocity(0);
-
-    // Handle input
-    let moveX = 0;
-    let moveY = 0;
-
-    if (this.cursors.left.isDown || this.wasd.A.isDown) {
-      moveX = -1;
-    } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
-      moveX = 1;
-    }
-
-    if (this.cursors.up.isDown || this.wasd.W.isDown) {
-      moveY = -1;
-    } else if (this.cursors.down.isDown || this.wasd.S.isDown) {
-      moveY = 1;
-    }
-
-    // Normalize diagonal movement
-    if (moveX !== 0 && moveY !== 0) {
-      moveX *= 0.707;
-      moveY *= 0.707;
-    }
-
-    // Apply velocity
-    this.player.setVelocity(moveX * this.moveSpeed, moveY * this.moveSpeed);
-  }
+  // Delegate movement to Player class
+  this.player.handleMovement(this.cursors, this.wasd);
+}
 
   private createGrid(width: number, height: number): void {
     const graphics = this.add.graphics();
@@ -114,4 +107,25 @@ export class GameScene extends Phaser.Scene {
       graphics.lineBetween(0, y, width, y);
     }
   }
+
+  private createTileWorld(): void {
+  const tileSize = 64;
+  
+  // Create a 10x10 grid of floor tiles
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < 10; col++) {
+      const x = col * tileSize;
+      const y = row * tileSize;
+      
+      // Place floor tile
+      this.add.image(x, y, 'floor-tile').setOrigin(0, 0);
+      
+      // Add walls around the border
+      if (row === 0 || row === 9 || col === 0 || col === 9) {
+        const wall = this.walls!.create(x, y, 'wall-tile').setOrigin(0, 0);
+        wall.refreshBody();
+      }
+    }
+  }
+}
 }

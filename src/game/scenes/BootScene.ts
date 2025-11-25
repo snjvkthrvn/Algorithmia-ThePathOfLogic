@@ -8,6 +8,10 @@ export class BootScene extends Phaser.Scene {
   preload(): void {
     // Load initial assets needed for loading screen
     this.createLoadingBar();
+    this.load.image('player-test', 'assets/sprites/characters/player-test.png');
+    this.load.image('tileset-test', 'assets/sprites/environment/tileset-test.png');
+    this.load.image('floor-tile', 'assets/sprites/environment/floor-tile.png');
+    this.load.image('wall-tile', 'assets/sprites/environment/wall-tile.png');
   }
 
   create(): void {

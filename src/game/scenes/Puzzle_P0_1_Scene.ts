@@ -8,12 +8,15 @@ export class Puzzle_P0_1_Scene extends Phaser.Scene {
   private playerSequence: number[] = [];
   private isShowingSequence: boolean = false;
   private sequenceLength: number = 3;
+  private attempts: number = 0;
+  private startTime: number = 0;
 
   constructor() {
     super({ key: 'Puzzle_P0_1_Scene' });
   }
 
   create(): void {
+    this.startTime = Date.now();
     this.tiles = [];
     this.playerSequence = [];
     // Background
@@ -127,6 +130,7 @@ private onTileClick(index: number): void {
   }
 }
 private checkSequence(): void {
+  this.attempts++;
   // Compare player sequence with correct sequence
   let correct = true;
   for (let i = 0; i < this.sequence.length; i++) {
@@ -137,11 +141,16 @@ private checkSequence(): void {
   }
 
   if (correct) {
-    // Success!
-    this.add.text(400, 500, 'Correct! Press SPACE to continue', {
-      fontSize: '24px',
-      color: '#10b981',
-    }).setOrigin(0.5);
+    // Success! Calculate time spent
+    const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
+
+    // Launch Concept Bridge with puzzle data
+    this.scene.start('ConceptBridgeScene', {
+      puzzleName: 'Follow the Path',
+      concept: 'Sequential Processing & Pattern Recognition',
+      attempts: this.attempts,
+      timeSpent: timeSpent
+    });
   } else {
     // Failure
     this.add.text(400, 500, 'Wrong! Press R to retry', {

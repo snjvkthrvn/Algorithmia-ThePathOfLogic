@@ -3,6 +3,7 @@ import { BootScene } from '../scenes/BootScene';
 import { MenuScene } from '../scenes/MenuScene';
 import { GameScene } from '../scenes/GameScene';
 import { Puzzle_P0_1_Scene } from '../scenes/Puzzle_P0_1_Scene';
+import { ConceptBridgeScene } from '../scenes/ConceptBridgeScene';
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -21,7 +22,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, MenuScene, GameScene, Puzzle_P0_1_Scene],
+  scene: [BootScene, MenuScene, GameScene, Puzzle_P0_1_Scene, ConceptBridgeScene],
   pixelArt: true,
   antialias: false,
 };

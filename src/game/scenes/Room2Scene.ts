@@ -6,7 +6,7 @@ export class Room2Scene extends Phaser.Scene {
   private walls?: Phaser.Physics.Arcade.StaticGroup;
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   
-  // FIXED: Strict Type Definition
+  // WASD Keys
   private wasd?: {
     W: Phaser.Input.Keyboard.Key;
     A: Phaser.Input.Keyboard.Key;
@@ -28,49 +28,58 @@ export class Room2Scene extends Phaser.Scene {
   }
 
   create(): void {
-    // 1. SETUP WORLD
-    const bg = this.add.rectangle(0, 0, 2000, 2000, 0x5c7c32); 
-    bg.setScrollFactor(0);
+    // 1. FIX BACKGROUND (Infinite Green)
+    // This removes the "Blue" and "Grey" bars
+    this.cameras.main.setBackgroundColor('#5c7c32'); 
+
+    // 2. SETUP WORLD
+    // Make bounds large enough to center the content
     this.physics.world.setBounds(0, 0, 2000, 2000);
     this.walls = this.physics.add.staticGroup();
-    this.createFarmLayout();
+    
+    // Offset to center the farm on screen
+    const offsetX = 300; 
+    this.createFarmLayout(offsetX);
 
-    // 2. PLAYER
-    this.player = new Player(this, 100, 300); 
+    // 3. PLAYER (Spawn shifted by offset)
+    this.player = new Player(this, 100 + offsetX, 300); 
     this.physics.add.collider(this.player, this.walls);
 
-    // 3. CAMERA
+    // 4. CAMERA
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    this.cameras.main.setBounds(0, 0, 1280, 1000); 
+    this.cameras.main.setBounds(0, 0, 2000, 2000); 
 
-    // 4. TRIGGER (The Red Box)
-    this.puzzleTrigger = this.physics.add.sprite(128, 128, 'wall-tile');
+    // 5. TRIGGER (The Red Box - Index 1)
+    // Index 1 is at x=2 in our loop (since we skip every other for crops)
+    // Logic: offsetX + (2 * 64) = Trigger X
+    const triggerX = offsetX + 128;
+    const triggerY = 128;
+
+    this.puzzleTrigger = this.physics.add.sprite(triggerX, triggerY, 'wall-tile');
     this.puzzleTrigger.setTint(0xff0000); 
     this.puzzleTrigger.setImmovable(true);
     this.physics.add.collider(this.player, this.puzzleTrigger);
 
-    // 5. SENSOR ZONE (FIXED)
-    this.interactionZone = this.add.zone(128, 128, 150, 150);
+    // 6. SENSOR ZONE
+    this.interactionZone = this.add.zone(triggerX, triggerY, 150, 150);
     this.physics.world.enable(this.interactionZone);
     const zoneBody = this.interactionZone.body as Phaser.Physics.Arcade.Body;
     zoneBody.setAllowGravity(false);
     zoneBody.setImmovable(true); 
-    // removed .setMoves(false) as setImmovable is sufficient for a sensor
 
-    // 6. VISUAL GUIDANCE
-    const arrow = this.add.text(128, 60, '⬇', {
+    // 7. VISUAL GUIDANCE (Arrow)
+    const arrow = this.add.text(triggerX, triggerY - 70, '⬇', {
         fontSize: '32px', color: '#ffff00', fontStyle: 'bold'
     }).setOrigin(0.5);
 
     this.tweens.add({
-        targets: arrow, y: 80, duration: 600, yoyo: true, repeat: -1
+        targets: arrow, y: triggerY - 50, duration: 600, yoyo: true, repeat: -1
     });
 
-    // 7. INPUTS
+    // 8. INPUTS
     if (this.input.keyboard) {
         this.cursors = this.input.keyboard.createCursorKeys();
         
-        // FIXED: Strict Casting
         this.wasd = this.input.keyboard.addKeys('W,A,S,D') as {
             W: Phaser.Input.Keyboard.Key;
             A: Phaser.Input.Keyboard.Key;
@@ -78,32 +87,29 @@ export class Room2Scene extends Phaser.Scene {
             D: Phaser.Input.Keyboard.Key;
         };
         
-        // Dialog Skip
         this.input.keyboard.on('keydown-SPACE', () => {
             if (this.isDialogActive) this.closeDialog();
         });
     }
 
-    // 8. SHOW INTRO DIALOG
+    // 9. SHOW INTRO DIALOG
     this.createDialogBox("SYSTEM ALERT:\nData Corruption detected at Index [1].\nNavigate to the Red Sector to repair.");
   }
 
   update(): void {
     if (!this.player || !this.cursors || !this.wasd) return;
 
-    // FREEZE MOVEMENT if Dialog is open
     if (this.isDialogActive) {
         this.player.setVelocity(0, 0);
         return;
     }
 
-    // MOVEMENT
     this.player.handleMovement(this.cursors, this.wasd);
     
-    // Bounds check
+    // Bounds check (Exit to Hub - Adjusted for offset)
     if (this.player.x < 50) this.scene.start('GameScene'); 
 
-    // INTERACTION CHECK (FIXED: Removed unused vars)
+    // INTERACTION CHECK
     if (this.physics.world.overlap(this.player, this.interactionZone)) {
         this.showInteractPrompt(true);
         if (this.cursors.space.isDown) {
@@ -121,7 +127,6 @@ export class Room2Scene extends Phaser.Scene {
     }
     this.isDialogActive = false;
     
-    // Add HUD
     this.add.text(10, 10, 'MISSION: Fix Index [1]', {
             fontSize: '16px', color: '#fff', backgroundColor: '#000' 
     }).setScrollFactor(0);
@@ -159,25 +164,28 @@ export class Room2Scene extends Phaser.Scene {
     }
   }
 
-  private createFarmLayout(): void {
+  private createFarmLayout(offsetX: number): void {
     const tileSize = 64;
     for(let x = 0; x < 15; x++) {
+        const xPos = offsetX + (x * tileSize);
+
         // Path
-        this.add.image(x * tileSize, 4 * tileSize, 'floor-tile').setTint(0xd2b48c);
-        this.add.image(x * tileSize, 5 * tileSize, 'floor-tile').setTint(0xd2b48c);
+        this.add.image(xPos, 4 * tileSize, 'floor-tile').setTint(0xd2b48c);
+        this.add.image(xPos, 5 * tileSize, 'floor-tile').setTint(0xd2b48c);
         
         if (x % 2 === 0) {
-            const cropTop = this.walls!.create(x * tileSize, 2 * tileSize, 'wall-tile');
+            // Walls
+            const cropTop = this.walls!.create(xPos, 2 * tileSize, 'wall-tile');
             cropTop.setTint(0x228b22);
-            const cropBot = this.walls!.create(x * tileSize, 7 * tileSize, 'wall-tile');
+            const cropBot = this.walls!.create(xPos, 7 * tileSize, 'wall-tile');
             cropBot.setTint(0x228b22);
             
-            this.walls!.create(x * tileSize, 2 * tileSize, 'wall-tile').refreshBody();
-            this.walls!.create(x * tileSize, 7 * tileSize, 'wall-tile').refreshBody();
+            this.walls!.create(xPos, 2 * tileSize, 'wall-tile').refreshBody();
+            this.walls!.create(xPos, 7 * tileSize, 'wall-tile').refreshBody();
 
             const index = x / 2;
-            this.add.text(x * tileSize, 1.5 * tileSize, `[${index}]`, { fontSize: '14px', color: '#fff' }).setOrigin(0.5);
-            this.add.text(x * tileSize, 7.5 * tileSize, `[${index}]`, { fontSize: '14px', color: '#fff' }).setOrigin(0.5);
+            this.add.text(xPos, 1.5 * tileSize, `[${index}]`, { fontSize: '14px', color: '#fff' }).setOrigin(0.5);
+            this.add.text(xPos, 7.5 * tileSize, `[${index}]`, { fontSize: '14px', color: '#fff' }).setOrigin(0.5);
         }
     }
   }

@@ -12,6 +12,11 @@ export class BootScene extends Phaser.Scene {
     this.load.image('tileset-test', 'assets/sprites/environment/tileset-test.png');
     this.load.image('floor-tile', 'assets/sprites/environment/floor-tile.png');
     this.load.image('wall-tile', 'assets/sprites/environment/wall-tile.png');
+    this.load.image('shard-cyan', 'assets/puzzles/fractured-sentinel/shard-cyan.png');
+    this.load.image('shard-purple', 'assets/puzzles/fractured-sentinel/shard-purple.png');
+    this.load.image('shard-orange', 'assets/puzzles/fractured-sentinel/shard-orange.png');
+    this.load.image('sentinel-frame', 'assets/puzzles/fractured-sentinel/sentinel-frame.png');
+    this.load.image('platform-tile', 'assets/puzzles/fractured-sentinel/platform-tile.png');
   }
 
   create(): void {

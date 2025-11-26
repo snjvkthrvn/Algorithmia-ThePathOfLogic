@@ -2,15 +2,22 @@ import Phaser from 'phaser';
 import { generateConceptExplanation } from '../../services/openaiService';
 
 export class ConceptBridgeScene extends Phaser.Scene {
-  private explanationText?: Phaser.GameObjects.Text;
+  
   private loadingText?: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: 'ConceptBridgeScene' });
   }
 
-  init(data: { puzzleName: string; concept: string; attempts: number; timeSpent: number }) {
-    // Store puzzle data for API call
+  init(data: { 
+    puzzleName: string; 
+    concept: string; 
+    attempts: number; 
+    timeSpent: number;
+    description?: string; // Optional: Pre-written text
+    code?: string;        // Optional: Pre-written code
+  }) {
+    // Store puzzle data
     this.registry.set('puzzleData', data);
   }
 
@@ -35,8 +42,17 @@ export class ConceptBridgeScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Fetch AI explanation
+    // Check if we have pre-defined content or need to fetch it
     const puzzleData = this.registry.get('puzzleData');
-    this.fetchExplanation(puzzleData);
+    
+    if (puzzleData.description) {
+      // Use the pre-defined content we passed from P0-2
+      const fullText = `${puzzleData.description}\n\n${puzzleData.code || ''}`;
+      this.displayExplanation(fullText);
+    } else {
+      // No content provided? Ask the AI (like in P0-1)
+      this.fetchExplanation(puzzleData);
+    }
 
     // Instructions (hidden initially)
     this.add.text(width / 2, height - 40, 'Press SPACE to continue', {
@@ -68,7 +84,7 @@ export class ConceptBridgeScene extends Phaser.Scene {
     this.loadingText?.destroy();
 
     // Display explanation in a scrollable text box
-    this.explanationText = this.add.text(width / 2, height / 2, text, {
+    this.add.text(width / 2, height / 2, text, {
       fontSize: '16px',
       color: '#FFFFFF',
       align: 'left',

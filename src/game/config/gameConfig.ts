@@ -4,6 +4,8 @@ import { MenuScene } from '../scenes/MenuScene';
 import { GameScene } from '../scenes/GameScene';
 import { Puzzle_P0_1_Scene } from '../scenes/Puzzle_P0_1_Scene';
 import { ConceptBridgeScene } from '../scenes/ConceptBridgeScene';
+import { Room2Scene } from '../scenes/Room2Scene';
+import { Puzzle_P0_2_Scene } from '../scenes/Puzzle_P0_2_Scene';
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -22,7 +24,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, MenuScene, GameScene, Puzzle_P0_1_Scene, ConceptBridgeScene],
+  scene: [BootScene, MenuScene, GameScene, Room2Scene, Puzzle_P0_1_Scene,Puzzle_P0_2_Scene, ConceptBridgeScene],
   pixelArt: true,
   antialias: false,
 };

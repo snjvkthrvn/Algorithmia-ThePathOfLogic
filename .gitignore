@@ -7,11 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.env
 .env.local
 node_modules
 dist
 dist-ssr
 *.local
+
+# Archive folder for old design assets
+archive/
 
 # Editor directories and files
 .vscode/*

@@ -54,11 +54,12 @@ export abstract class BasePuzzleScene extends Phaser.Scene {
     super(config);
   }
 
-  init(data: { returnScene?: string; puzzleData?: Record<string, unknown> }): void {
+  init(data: { returnScene?: string; puzzleData?: Record<string, unknown>; previousAttempts?: number; previousHintsUsed?: number }): void {
     this.returnScene = data.returnScene || 'GameScene';
     this.startTime = Date.now();
-    this.attempts = 0;
-    this.hintsUsed = 0;
+    // Preserve attempts and hints across restarts
+    this.attempts = data.previousAttempts || 0;
+    this.hintsUsed = data.previousHintsUsed || 0;
   }
 
   create(): void {
@@ -93,7 +94,7 @@ export abstract class BasePuzzleScene extends Phaser.Scene {
     this.createTitleArea(width);
     
     // Add control buttons
-    this.createControlButtons(width, height);
+    this.createControlButtons(width);
     
     // Create star rating display (initially hidden)
     this.createStarRating(width);
@@ -148,8 +149,10 @@ export abstract class BasePuzzleScene extends Phaser.Scene {
       strokeThickness: 4,
     }).setOrigin(0.5);
     
-    // Add glow effect to title
-    this.titleText.setPostPipeline('glow');
+    // Add glow effect to title using postFX API (Phaser 3.60+)
+    if (this.titleText.postFX) {
+      this.titleText.postFX.addGlow(0x06b6d4, 2, 0, false, 0.1, 12);
+    }
     
     // Instruction text
     this.instructionText = this.add.text(width / 2, 115, this.puzzleDescription, {
@@ -166,7 +169,7 @@ export abstract class BasePuzzleScene extends Phaser.Scene {
   /**
    * Creates control buttons (Exit, Hint)
    */
-  protected createControlButtons(width: number, height: number): void {
+  protected createControlButtons(width: number): void {
     // Exit button (top right)
     this.exitButton = this.createRetroButton(
       width - 80, 
@@ -349,8 +352,13 @@ export abstract class BasePuzzleScene extends Phaser.Scene {
    * Restart the puzzle
    */
   protected restartPuzzle(): void {
+    // Increment attempts and preserve it across restart
     this.attempts++;
-    this.scene.restart({ returnScene: this.returnScene });
+    this.scene.restart({ 
+      returnScene: this.returnScene,
+      previousAttempts: this.attempts,
+      previousHintsUsed: this.hintsUsed,
+    });
   }
 
   /**
@@ -373,7 +381,7 @@ export abstract class BasePuzzleScene extends Phaser.Scene {
           puzzleName: this.puzzleName,
           puzzleId: this.puzzleId,
           concept: this.getConceptName(),
-          attempts: this.attempts + 1,
+          attempts: this.attempts, // Send actual attempts count (mistakes/wrong attempts)
           timeSpent: timeSpent,
           hintsUsed: this.hintsUsed,
           stars: stars,

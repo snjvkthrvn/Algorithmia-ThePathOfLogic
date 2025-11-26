@@ -88,7 +88,7 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
     this.createShards(centerX, centerY);
     
     // Create progress bar
-    this.createProgressBar(centerX, height - 100);
+    this.createProgressBar();
   }
 
   /**
@@ -441,6 +441,9 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
    * Show feedback for wrong socket attempt
    */
   private showWrongSocketFeedback(shard: Phaser.GameObjects.Container): void {
+    // Increment attempts counter for wrong placement
+    this.attempts++;
+    
     const originalPos = this.originalPositions.get(shard.getData('color'));
     
     // Shake effect
@@ -507,7 +510,7 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
   /**
    * Create progress bar
    */
-  private createProgressBar(x: number, y: number): void {
+  private createProgressBar(): void {
     this.progressBar = this.add.graphics();
     this.updateProgress();
   }
@@ -625,7 +628,6 @@ private checkWinCondition(): void {
     // Visual hint: highlight sockets briefly
     if (hintNumber >= 2) {
       this.socketGraphics.forEach((socket, index) => {
-        const color = this.shardDefs[index].hex;
         this.tweens.add({
           targets: socket,
           scale: 1.3,

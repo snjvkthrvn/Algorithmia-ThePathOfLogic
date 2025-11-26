@@ -52,7 +52,7 @@ Comprehensive puzzle specifications with mechanics, visuals, and educational con
 | Puzzle | Document | Concept |
 |--------|----------|---------|
 | P0-1: Follow the Path | [PUZZLE_P0_1_FOLLOW_THE_PATH.md](./puzzles/PUZZLE_P0_1_FOLLOW_THE_PATH.md) | Sequential Processing |
-| P0-2: Fractured Sentinel | [PUZZLE_P0_2_FRACTURED_SENTINEL.md](./puzzles/PUZZLE_P0_2_FRACTURED_SENTINEL.md) | Mapping/Key-Value |
+| P0-2: Flow Consoles | [PUZZLE_P0_2_FLOW_CONSOLES.md](./puzzles/PUZZLE_P0_2_FLOW_CONSOLES.md) | Mapping/Key-Value |
 | BOSS: Fractured Sentinel | [BOSS_FRACTURED_SENTINEL.md](./puzzles/BOSS_FRACTURED_SENTINEL.md) | Combined Patterns |
 
 #### Array Plains Puzzles

@@ -32,7 +32,7 @@ Think of the opening sequence of **Pokémon Red/Blue** where you wake up in your
 ┌─────────────────────────────────────────────────────────────────┐
 │                         V O I D                                  │
 │      ┌─────────────┐                     ┌─────────────────┐    │
-│      │  PATH RUNES │═════════════════════│ SENTINEL FRAME  │    │
+│      │  PATH RUNES │═════════════════════│ FLOW CONSOLES   │    │
 │      │   (P0-1)    │      BRIDGE         │     (P0-2)      │    │
 │      └──────┬──────┘                     └────────┬────────┘    │
 │             │                                     │             │
@@ -106,11 +106,11 @@ Creates subtle 2x2 subdivision for retro feel
 - **Animation:** Gentle bob up/down (3px amplitude, 2s cycle)
 - **Shadow:** Elliptical below, fades into void
 
-#### Crystal Shards (P0-2)
-- **Design:** Elongated hexagons with faceted inner patterns
-- **Colors:** Each shard has unique color matching its socket
-- **Glow:** Soft bloom effect, 8px spread
-- **Idle Animation:** Gentle rotation (±5°), floating bob
+#### Flow Shards & Consoles (P0-2)
+- **Shards:** Small crystalline fragments with symbol combos (shape + color stripe)
+- **Consoles:** Floating terminals with matching symbol displays
+- **Glow:** Soft bloom effect when shard approaches correct console
+- **Idle Animation:** Consoles pulse gently, shards float and bob
 
 ### Atmospheric Effects
 
@@ -175,23 +175,42 @@ Idle: Frame 0, subtle bob (1px, 1.5s)
 ### NPCs
 
 #### Professor Node
-**Not a humanoid** — a floating geometric entity representing pure logic.
+A warm, scholarly human who serves as the player's guide—inspired by Pokemon professors like Oak and Elm.
 
 ```
-Visual Concept:
-     ╱╲
-    ╱  ╲
-   ╱ ◉◉ ╲    ← Dodecahedron shape with glowing face
-   ╲    ╱       Eyes appear when speaking
-    ╲  ╱
-     ╲╱
+Visual Concept (16x24 base sprite, scaled 4x):
 
-Base: 48x48 pixel sprite, scaled 2x
-Color: Core (#06b6d4), Shell (#8b5cf6)
-Animation: 
-  - Idle: Gentle rotation, vertex glow pulses
-  - Speaking: Face emerges, particles emit from vertices
-  - Moving: Trail of geometric particles
+   ┌─────────────────────┐
+   │      Professor      │
+   │        Node         │
+   │                     │
+   │    White lab coat   │
+   │    over blue vest   │
+   │                     │
+   │    Gray-white hair  │
+   │    (slightly messy) │
+   │                     │
+   │    Round glasses    │
+   │    Kind smile       │
+   │                     │
+   │    Holds floating   │
+   │    logic crystal    │
+   │    (glows cyan)     │
+   └─────────────────────┘
+
+Character Design:
+- Age: 50s-60s, wise but approachable
+- Hair: Gray-white, slightly disheveled (always thinking)
+- Face: Round glasses, warm eyes, gentle smile
+- Outfit: White lab coat over blue vest, brown pants
+- Accessory: Floating cyan crystal that orbits him
+- Expression: Encouraging, never condescending
+
+Animation:
+  - Idle: Crystal orbits slowly, occasional thoughtful nod
+  - Speaking: Gestures with hands, crystal brightens
+  - Excited: Crystal spins faster, eyes light up
+  - Moving: Walks with purpose, crystal trails behind
 ```
 
 #### Rune Keeper (P0-1 NPC)
@@ -203,13 +222,14 @@ Pixel Art Design (16x24 base):
 - Runes circle around them (animated)
 ```
 
-#### Sentinel Guardian (P0-2 NPC)
+#### Console Keeper (P0-2 NPC)
 ```
 Pixel Art Design (16x24 base):
-- Armored figure in purple/orange split color
-- Crystal embedded in chest (glows)
-- Geometric patterns on armor
-- Stoic pose, minimal movement
+- Technomancer-style robe (dark blue with circuit patterns)
+- Visible face with focused expression
+- Goggles pushed up on forehead
+- Holds a shard fragment, examining it
+- Three small consoles hover behind them
 ```
 
 ---
@@ -352,9 +372,9 @@ Each puzzle area has an NPC that serves as the trigger:
 - Sprite: Hooded cyan figure with floating runes
 - Interaction: Dialogue → Puzzle intro → Transition to puzzle scene
 
-**Sentinel Guardian (P0-2)**
-- Position: Before the Sentinel Frame
-- Sprite: Armored figure in purple/orange
+**Console Keeper (P0-2)**
+- Position: Near the Flow Consoles area
+- Sprite: Technomancer with circuit-pattern robes, goggles on forehead
 - Interaction: Dialogue → Puzzle intro → Transition to puzzle scene
 
 #### Environmental Interactables
@@ -386,9 +406,9 @@ Each puzzle area has an NPC that serves as the trigger:
 ### Region Story Beat
 
 **THE AWAKENING:**
-The player awakens with no memory, floating in an abstract void. The first thing they see is Professor Node—a being of pure logic who explains:
+The player awakens with no memory, floating in an abstract void. The first thing they see is Professor Node—a kindly, white-haired professor in a lab coat, who seems to have been waiting for them. A small cyan crystal orbits around him as he speaks:
 
-> *"You've entered the space between thought and understanding. Here, ideas take physical form. I am Node, your guide through the Path of Logic."*
+> *"Ah, you've finally arrived! Welcome to the space between thought and understanding. Here, ideas take physical form. I'm Professor Node, and I'll be your guide through the Path of Logic."*
 >
 > *"Those glowing tiles ahead? They're not just puzzles—they're the building blocks of how machines think. Master them, and you'll carry that knowledge into any world."*
 
@@ -445,7 +465,7 @@ Face the trial beyond."
 - [ ] Player character (4 directions × 4 frames = 16 frames)
 - [ ] Professor Node (idle, speaking, moving = 3 states)
 - [ ] Rune Keeper NPC (2 states: idle, speaking)
-- [ ] Sentinel Guardian NPC (2 states)
+- [ ] Console Keeper NPC (2 states)
 - [ ] Floating path tiles (3 states: inactive, glowing, stepped)
 - [ ] Crystal shards (3 colors × 3 states)
 - [ ] Sentinel frame (empty, partial, complete)

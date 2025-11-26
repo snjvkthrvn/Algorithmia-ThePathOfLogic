@@ -16,7 +16,9 @@
 | **Concepts Tested** | Sequential Processing + Mapping (Combined) |
 
 ### Boss Identity
-The Fractured Sentinel is not an enemy to destroy—it's a **trial to prove mastery**. The player must demonstrate they can combine both puzzle mechanics (pattern following AND shard mapping) under time pressure and interference.
+The Fractured Sentinel is not an enemy to destroy—it's a **trial to prove mastery**. The player must demonstrate they can combine both puzzle mechanics (pattern following AND key-value mapping) under time pressure and interference.
+
+**Note:** This boss is separate from P0-2 (Flow Consoles). The Sentinel tests the same mapping concept but with harder mechanics—more shards, more sockets, and active interference.
 
 ### Design Philosophy
 This boss fight establishes the pattern for all future bosses:
@@ -70,9 +72,9 @@ This boss fight establishes the pattern for all future bosses:
 | Property | Value |
 |----------|-------|
 | **Size** | 1024 × 768 pixels |
-| **Pattern Tiles** | 8 tiles (vs 6 in puzzle) |
-| **Sockets** | 6 sockets (vs 3 in puzzle) |
-| **Shards** | 6 shards (vs 3 in puzzle) |
+| **Pattern Tiles** | 8 tiles (vs 6 in P0-1) |
+| **Sockets** | 6 sockets (vs 3 consoles in P0-2) |
+| **Shards** | 6 shards (vs 3 in P0-2) |
 | **Background** | Deeper void, more cosmic effects |
 | **Music** | Intense version of Prologue theme |
 
@@ -86,11 +88,14 @@ This boss fight establishes the pattern for all future bosses:
 [Player enters arena]
 
 SENTINEL: (voice booming, ancient)
-"You have restored my fragments, seeker.
-But can you use what you've learned...
+"You have followed the path. You have
+connected the flow. But understanding
+is not the same as mastery.
+
+Can you use what you've learned...
 when the void itself fights back?
 
-FACE ME. Prove your mastery."
+FACE ME. Prove your worth."
 
 [Sentinel eye flares - battle music begins]
 [UI elements appear: Health bar, Timer, Phase indicator]

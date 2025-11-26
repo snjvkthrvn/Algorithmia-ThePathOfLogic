@@ -11,7 +11,13 @@ export class GameScene extends Phaser.Scene {
     S: Phaser.Input.Keyboard.Key;
     D: Phaser.Input.Keyboard.Key;
   };
+  
+  // Triggers
   private sentinel!: Phaser.Physics.Arcade.Sprite;
+  private runeZone!: Phaser.GameObjects.Rectangle; // Changed to Rectangle for visibility
+  private portalZone!: Phaser.GameObjects.Rectangle; // New Portal
+  
+  // UI
   private interactText?: Phaser.GameObjects.Text;
 
   constructor() {
@@ -19,70 +25,52 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
+    // 1. THEME: Abstract Void
+    const bg = this.add.rectangle(0, 0, 2000, 2000, 0x0f172a); 
+    bg.setScrollFactor(0);
 
-    // Background
-    const bg = this.add.rectangle(0, 0, width, height, 0x3d5a80);
-    bg.setOrigin(0, 0);
-
-    // Add a grid for visual reference
-    this.createGrid(width, height);
-
-    // Create physics group for walls
+    // 2. CREATE WORLD (Compact)
     this.walls = this.physics.add.staticGroup();
+    this.createPrologueMap();
 
-    // Create a simple tile world
-    this.createTileWorld();
+    // 3. CREATE PLAYER
+    this.player = new Player(this, 400, 400); 
+    this.physics.add.collider(this.player, this.walls);
 
-    // Test: Display loaded sprite
-    
-
-    // Create placeholder player (circle for now)
-    // Create player
-    this.player = new Player(this, 320, 320); // Spawn at col 2, row 2 - safe inside maze
-    this.physics.add.collider(this.player, this.walls!);
-    // Create the Sentinel (P0-2 Trigger)
-    // Place it near the bottom right (Row 7, Col 7 approx)
-    // Create the Sentinel (P0-2 Trigger)
-    // Move to 480, 480 (Center of the 64x64 grid tile)
-    this.sentinel = this.physics.add.sprite(480, 480, 'sentinel-frame');
-    this.sentinel.setScale(0.25); 
-    this.sentinel.setImmovable(true);
-    
-    // FIX: Shrink the hitbox so player can get closer
-    // The original image is 256x256. We set the body to 128x128 (half size).
-    // When scaled by 0.25, this creates a tight 32x32 collision box.
-    this.sentinel.setSize(128, 128); 
-    this.sentinel.setOffset(64, 64); // Center the new hitbox ((256-128)/2 = 64)
-
-    // Add collision
-    this.physics.add.collider(this.player, this.sentinel);
-    
-    // Interaction Text (Hidden by default)
-    this.interactText = this.add.text(this.sentinel.x, this.sentinel.y - 40, 'Press SPACE', {
-      fontSize: '14px',
-      color: '#ffffff',
-      backgroundColor: '#00000088',
-      padding: { x: 4, y: 4 }
-    }).setOrigin(0.5).setVisible(false);
-
-    // Add collision
-    this.physics.add.collider(this.player, this.sentinel);
-    
-    
-    this.cameras.main.centerOn(320, 320);
-
-    // Setup camera to follow player
+    // 4. CAMERA
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-     // 10x10 tiles * 64px = 640x640 world
+    this.cameras.main.setBounds(0, 0, 1280, 1280);
 
-    // Draw a simple circle as placeholder
-    //const graphics = this.add.graphics();
-    //graphics.fillStyle(0x667eea, 1);
-    //graphics.fillCircle(width / 2, height / 2, 16);
+    // 5. OBJECTS & TRIGGERS
 
-    // Setup input
+    // --- Puzzle 1: THE PATH (North) ---
+    // Using a Neon Cyan Rectangle so it's 100% visible
+    this.runeZone = this.add.rectangle(400, 180, 80, 80, 0x00ffff, 0.6);
+    this.physics.add.existing(this.runeZone, true); // true = static body
+    
+    // Pulse Animation
+    this.tweens.add({
+        targets: this.runeZone,
+        alpha: 0.2,
+        duration: 1500,
+        yoyo: true,
+        repeat: -1
+    });
+
+    // --- Puzzle 2: SENTINEL (South-East) ---
+    this.sentinel = this.physics.add.sprite(700, 600, 'sentinel-frame');
+    this.sentinel.setScale(0.5); 
+    this.sentinel.setImmovable(true);
+    this.sentinel.setSize(128, 128); 
+    this.sentinel.setOffset(64, 64);
+    this.physics.add.collider(this.player, this.sentinel);
+
+    // --- EXIT: PORTAL TO ARRAY PLAINS (East) ---
+    // A Purple Gateway at the edge of the East platform
+    this.portalZone = this.add.rectangle(900, 400, 64, 120, 0x9b59b6, 0.8);
+    this.physics.add.existing(this.portalZone, true);
+
+    // 6. INPUTS
     if (this.input.keyboard) {
       this.cursors = this.input.keyboard.createCursorKeys();
       this.wasd = this.input.keyboard.addKeys('W,A,S,D') as {
@@ -91,110 +79,124 @@ export class GameScene extends Phaser.Scene {
         S: Phaser.Input.Keyboard.Key;
         D: Phaser.Input.Keyboard.Key;
       };
+      
+      this.input.keyboard.on('keydown-ESC', () => {
+        this.scene.start('MenuScene');
+      });
     }
 
-    // Add UI text
-    this.add.text(16, 16, 'Use WASD or Arrow Keys to Move', {
-      fontSize: '16px',
-      color: '#ffffff',
-      backgroundColor: '#00000088',
-      padding: { x: 10, y: 5 },
-    });
+    // 7. UI - LABELS (High contrast)
+    this.addLabel(400, 100, 'PUZZLE 1: THE PATH');
+    this.addLabel(700, 500, 'PUZZLE 2: SENTINEL');
+    this.addLabel(900, 300, 'GATEWAY: ARRAY PLAINS');
 
-    this.add.text(16, height - 36, 'Press ESC to return to menu', {
-      fontSize: '14px',
-      color: '#ffffff',
-      backgroundColor: '#00000088',
-      padding: { x: 10, y: 5 },
-    });
-
-    // ESC to return to menu
-    this.input.keyboard?.on('keydown-ESC', () => {
-      this.scene.start('MenuScene');
-    });
-
-    // P to start puzzle (for testing)
-    this.input.keyboard?.on('keydown-P', () => {
-      this.scene.start('Puzzle_P0_1_Scene');
-});
-
-    // 2 to start puzzle P0-2 (for testing)
-this.input.keyboard?.on('keydown-TWO', () => {
-  this.scene.start('Puzzle_P0_2_Scene');
-});
+    this.interactText = this.add.text(0, 0, 'Press SPACE', {
+      fontSize: '18px',
+      fontStyle: 'bold',
+      color: '#ffff00',
+      backgroundColor: '#000000aa',
+      padding: { x: 8, y: 4 }
+    }).setOrigin(0.5).setVisible(false).setDepth(100);
   }
 
   update(): void {
-  if (!this.player || !this.cursors || !this.wasd) return;
+    if (!this.player || !this.cursors || !this.wasd) return;
 
-  // Delegate movement to Player class
-  this.player.handleMovement(this.cursors, this.wasd);
-  // Check if player reached the right edge to go to Room 2
-  // Check if player reached the door to Room 2 (right side, middle rows)
-  if (this.player.x > 600 && this.player.y > 240 && this.player.y < 360) {
-    this.scene.start('Room2Scene');
-  }
-  // Check distance to Sentinel
-    if (this.sentinel && this.interactText) {
-      const distance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.sentinel.x, this.sentinel.y);
-      
-      if (distance < 60) {
-        // Player is close
-        this.interactText.setVisible(true);
-        
-        // Check for SPACE key
-        if (this.cursors.space.isDown) {
-          this.scene.start('Puzzle_P0_2_Scene');
+    this.player.handleMovement(this.cursors, this.wasd);
+
+    // --- VOID MECHANIC (Compact Bounds) ---
+    const tileX = Math.floor(this.player.x / 64);
+    const tileY = Math.floor(this.player.y / 64);
+    
+    // Defined safe zones based on the map layout below
+    const onCenter = (tileX >= 4 && tileX <= 8 && tileY >= 4 && tileY <= 8);
+    const onNorth = (tileX >= 5 && tileX <= 7 && tileY >= 1 && tileY <= 3);
+    const onEast = (tileX >= 9 && tileX <= 14 && tileY >= 5 && tileY <= 7);
+    const onSouthEast = (tileX >= 8 && tileX <= 11 && tileY >= 8 && tileY <= 11);
+
+    if (!onCenter && !onNorth && !onEast && !onSouthEast) {
+        this.respawnPlayer();
+    }
+
+    // --- INTERACTION LOGIC ---
+    let canInteract = false;
+    let targetPuzzle = '';
+
+    // 1. Puzzle 1 (Zone Overlap)
+    // We use Physics Overlap for the zone instead of distance check
+    if (this.physics.overlap(this.player, this.runeZone)) {
+        canInteract = true;
+        targetPuzzle = 'Puzzle_P0_1_Scene';
+        this.interactText?.setPosition(this.runeZone.x, this.runeZone.y - 60);
+    }
+
+    // 2. Sentinel (Distance)
+    if (!canInteract && this.sentinel) {
+        const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.sentinel.x, this.sentinel.y);
+        if (dist < 100) {
+            canInteract = true;
+            targetPuzzle = 'Puzzle_P0_2_Scene';
+            this.interactText?.setPosition(this.sentinel.x, this.sentinel.y - 80);
         }
-      } else {
-        // Player is far
-        this.interactText.setVisible(false);
-      }
-    }
-}
-
-  private createGrid(width: number, height: number): void {
-    const graphics = this.add.graphics();
-    graphics.lineStyle(1, 0x2a4058, 0.5);
-
-    // Vertical lines
-    for (let x = 0; x < width; x += 64) {
-      graphics.lineBetween(x, 0, x, height);
     }
 
-    // Horizontal lines
-    for (let y = 0; y < height; y += 64) {
-      graphics.lineBetween(0, y, width, y);
+    // 3. Portal (Exit)
+    if (this.physics.overlap(this.player, this.portalZone)) {
+        // Auto-travel or prompt? Let's prompt to be safe, or auto.
+        // Let's use Space to enter gate to prevent accidental exits.
+        this.interactText?.setText("ENTER GATE [SPACE]");
+        this.interactText?.setPosition(this.portalZone.x, this.portalZone.y - 80).setVisible(true);
+        
+        if (this.cursors.space.isDown) {
+            this.scene.start('Room2Scene');
+        }
+        return; // Skip standard interact logic
+    } else {
+        // Reset text if not on portal
+        this.interactText?.setText("Press SPACE");
     }
-  }
 
-  private createTileWorld(): void {
-  const tileSize = 64;
-  
-  // Create a 10x10 grid of floor tiles
-  for (let row = 0; row < 10; row++) {
-    for (let col = 0; col < 10; col++) {
-      const x = col * tileSize;
-      const y = row * tileSize;
-      
-      // Place floor tile
-      this.add.image(x, y, 'floor-tile').setOrigin(0, 0);
-      
-      // Add walls around the border
-      // Add walls around the border AND interior maze walls
-    const isWall = 
-      row === 0 || row === 9 || col === 0 || // Border walls (left, top, bottom)
-      (col === 9 && (row < 4 || row > 5)) || // Right wall with gap for door
-      (row === 3 && col >= 2 && col <= 7) || // Horizontal wall
-      (row === 6 && col >= 2 && col <= 7) || // Horizontal wall
-      (col === 5 && row >= 1 && row <= 3) || // Vertical wall
-      (col === 3 && row >= 6 && row <= 8);   // Vertical wall
-
-      if (isWall) {
-        const wall = this.walls!.create(x, y, 'wall-tile').setOrigin(0, 0);
-        wall.refreshBody();
-      }
+    // Show/Hide UI for Puzzles
+    if (canInteract) {
+        this.interactText?.setVisible(true);
+        if (this.cursors.space.isDown) {
+            this.scene.start(targetPuzzle);
+        }
+    } else if (!this.physics.overlap(this.player, this.portalZone)) {
+        this.interactText?.setVisible(false);
     }
   }
-}
+
+  private respawnPlayer(): void {
+    this.player?.setPosition(400, 400);
+    this.cameras.main.shake(200, 0.01);
+  }
+
+  private createPrologueMap(): void {
+    const tileSize = 64;
+    const platforms = [
+      { x: 4, y: 4, w: 5, h: 5 }, // Central Hub
+      { x: 5, y: 1, w: 3, h: 3 }, // North (Puzzle 1)
+      { x: 9, y: 5, w: 6, h: 3 }, // East (Exit Gate) - Compact again!
+      { x: 8, y: 8, w: 4, h: 4 }, // South-East (Puzzle 2)
+    ];
+
+    platforms.forEach(p => {
+      for(let r = 0; r < p.h; r++) {
+        for(let c = 0; c < p.w; c++) {
+          this.add.image((p.x + c) * tileSize, (p.y + r) * tileSize, 'floor-tile').setOrigin(0);
+        }
+      }
+    });
+  }
+
+  private addLabel(x: number, y: number, text: string): void {
+    this.add.text(x, y, text, {
+      fontSize: '16px',
+      fontFamily: 'monospace',
+      color: '#ffffff',
+      backgroundColor: '#00000088',
+      padding: { x: 4, y: 2 }
+    }).setOrigin(0.5).setDepth(10);
+  }
 }

@@ -37,7 +37,7 @@ export class Puzzle_P0_1_Scene extends BasePuzzleScene {
 
   constructor() {
     super({ key: 'Puzzle_P0_1_Scene' });
-    this.puzzleId = 'P0_1';
+    this.puzzleId = 'P0-1';
     this.puzzleName = 'FOLLOW THE PATH';
     this.puzzleDescription = 'Watch the tiles light up, then repeat the sequence.';
   }
@@ -347,7 +347,7 @@ export class Puzzle_P0_1_Scene extends BasePuzzleScene {
     this.attempts++;
     
     // Flash all tiles red
-    this.tiles.forEach((container, index) => {
+    this.tiles.forEach((_tile, index) => {
       this.flashTile(index, this.COLORS.error);
       this.time.delayedCall(300, () => this.resetTile(index));
     });
@@ -374,7 +374,7 @@ export class Puzzle_P0_1_Scene extends BasePuzzleScene {
     this.isPlayerTurn = false;
     
     // Flash all tiles green
-    this.tiles.forEach((container, index) => {
+    this.tiles.forEach((_tile, index) => {
       this.flashTile(index, this.COLORS.success);
       this.time.delayedCall(500, () => this.resetTile(index));
     });

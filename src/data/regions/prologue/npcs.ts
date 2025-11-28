@@ -3,7 +3,8 @@
  * Professor Node and tutorial guides
  */
 
-import { NPCConfig, NPCType } from '../../types';
+import type { NPCConfig } from '../../types';
+import { NPCType } from '../../types';
 
 export const professorNode: NPCConfig = {
   id: 'professor_node',

@@ -1,18 +1,20 @@
 import Phaser from 'phaser';
+import { PROLOGUE_TEXTURE_KEYS } from '../config/placeholderTextures';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private moveSpeed: number = 160;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, 'player-test');
+    super(scene, x, y, PROLOGUE_TEXTURE_KEYS.player);
     
     // Add to scene
     scene.add.existing(this);
     scene.physics.add.existing(this);
     
     // Setup physics body
-    this.setCircle(16);
-    this.setDisplaySize(64, 64);
+    this.setCircle(18, 0, 8);
+    this.setDisplaySize(64, 96);
+    this.setDepth(20);
   }
 
   public handleMovement(

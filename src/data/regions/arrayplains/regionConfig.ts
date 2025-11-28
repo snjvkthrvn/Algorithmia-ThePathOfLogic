@@ -3,7 +3,7 @@
  * Region 1: Teaching foundational array-based algorithms
  */
 
-import { RegionConfig } from '../../types';
+import type { RegionConfig } from '../../types';
 
 export const arrayPlainsConfig: RegionConfig = {
   id: 'arrayplains',

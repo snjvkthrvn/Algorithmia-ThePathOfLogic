@@ -16,7 +16,6 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
   
   // Game state
   private lockedShards: Set<string> = new Set();
-  private draggedShard: Phaser.GameObjects.Container | null = null;
   private originalPositions: Map<string, { x: number; y: number }> = new Map();
   
   // UI elements
@@ -40,7 +39,7 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
 
   constructor() {
     super({ key: 'Puzzle_P0_2_Scene' });
-    this.puzzleId = 'P0_2';
+    this.puzzleId = 'P0-2';
     this.puzzleName = 'THE FRACTURED SENTINEL';
     this.puzzleDescription = 'Restore the Sentinel by placing each shard in its matching socket.';
   }
@@ -53,7 +52,6 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
     this.sockets = [];
     this.socketGraphics = [];
     this.lockedShards = new Set();
-    this.draggedShard = null;
     this.originalPositions = new Map();
     
     // Create puzzle-specific UI
@@ -315,7 +313,6 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
     ) => {
       if (gameObject.getData('locked')) return;
       
-      this.draggedShard = gameObject;
       gameObject.setDepth(100);
       
       // Stop floating animation
@@ -340,7 +337,6 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
     ) => {
       if (gameObject.getData('locked')) return;
       
-      this.draggedShard = null;
       gameObject.setDepth(1);
       
       this.checkSocketSnap(gameObject);

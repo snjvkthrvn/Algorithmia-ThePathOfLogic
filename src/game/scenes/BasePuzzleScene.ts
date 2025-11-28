@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { prologueProgress } from '../state/prologueProgress';
 
 /**
  * BasePuzzleScene - A consistent UI framework for all puzzle scenes
@@ -366,6 +367,9 @@ export abstract class BasePuzzleScene extends Phaser.Scene {
    */
   protected onPuzzleComplete(stars: number): void {
     const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
+    if (this.puzzleId) {
+      prologueProgress.markPuzzleComplete(this.puzzleId);
+    }
     
     // Show star rating
     this.showStarRating(stars);

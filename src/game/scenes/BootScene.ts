@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { registerProloguePlaceholders } from '../config/placeholderTextures';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -20,6 +21,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    registerProloguePlaceholders(this);
     // Once booting is complete, move to menu
     this.scene.start('MenuScene');
   }

@@ -7,7 +7,8 @@
  * BOSS: Mirror Serpent
  */
 
-import { PuzzleConfig, BossConfig, PuzzleType, Difficulty, AlgorithmType } from '../../types';
+import type { PuzzleConfig, BossConfig } from '../../types';
+import { PuzzleType, Difficulty, AlgorithmType } from '../../types';
 
 // =============================================================================
 // TR1: MIRROR WALK (Two Pointers - Simultaneous Movement)

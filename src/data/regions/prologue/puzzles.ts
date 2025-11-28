@@ -5,7 +5,8 @@
  * BOSS: Fractured Sentinel Multi-Phase
  */
 
-import { PuzzleConfig, BossConfig, PuzzleType, Difficulty, AlgorithmType } from '../../types';
+import type { PuzzleConfig, BossConfig } from '../../types';
+import { PuzzleType, Difficulty, AlgorithmType } from '../../types';
 
 // =============================================================================
 // P0-1: FOLLOW THE PATH

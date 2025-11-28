@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { prologueProgress } from '../state/prologueProgress';
 
 /**
  * MenuScene - Retro pixel art main menu
@@ -7,7 +8,6 @@ import Phaser from 'phaser';
 export class MenuScene extends Phaser.Scene {
   // UI elements
   private titleText!: Phaser.GameObjects.Text;
-  private subtitleText!: Phaser.GameObjects.Text;
   private menuItems: Phaser.GameObjects.Container[] = [];
   private selectedIndex: number = 0;
   
@@ -159,7 +159,7 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // Subtitle
-    this.subtitleText = this.add.text(width / 2, 180, 'THE PATH OF LOGIC', {
+    this.add.text(width / 2, 180, 'THE PATH OF LOGIC', {
       fontSize: '18px',
       fontFamily: '"Press Start 2P", monospace',
       color: '#8b5cf6',
@@ -430,6 +430,7 @@ export class MenuScene extends Phaser.Scene {
    * Start new game
    */
   private startNewGame(): void {
+    prologueProgress.reset();
     this.cameras.main.fadeOut(500, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start('GameScene');

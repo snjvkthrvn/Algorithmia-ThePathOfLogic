@@ -3,7 +3,8 @@
  * Guides who teach pointer-based algorithms
  */
 
-import { NPCConfig, NPCType } from '../../types';
+import type { NPCConfig } from '../../types';
+import { NPCType } from '../../types';
 
 // =============================================================================
 // MIRROR WALKER (Central guide - introduces region)

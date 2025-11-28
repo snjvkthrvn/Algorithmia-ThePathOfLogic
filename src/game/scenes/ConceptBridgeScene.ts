@@ -98,7 +98,6 @@ function bubbleSort(array) {
  */
 export class ConceptBridgeScene extends Phaser.Scene {
   // UI Elements
-  private container!: Phaser.GameObjects.Container;
   private professorSprite!: Phaser.GameObjects.Container;
   private textContent!: Phaser.GameObjects.Text;
   private codeBlock!: Phaser.GameObjects.Container;
@@ -107,7 +106,6 @@ export class ConceptBridgeScene extends Phaser.Scene {
   // State
   private currentSection: number = 0;
   private conceptData!: ConceptData;
-  private sections: string[] = [];
   
   // Colors
   private readonly COLORS = {
@@ -134,11 +132,8 @@ export class ConceptBridgeScene extends Phaser.Scene {
     // Background
     this.add.rectangle(0, 0, width, height, this.COLORS.bg, 0.95).setOrigin(0);
     
-    // Main container
-    this.container = this.add.container(0, 0);
-    
     // Create Professor Node
-    this.createProfessorNode(width);
+    this.createProfessorNode();
     
     // Create content panel
     this.createContentPanel(width, height);
@@ -161,7 +156,7 @@ export class ConceptBridgeScene extends Phaser.Scene {
   /**
    * Create Professor Node character
    */
-  private createProfessorNode(width: number): void {
+  private createProfessorNode(): void {
     this.professorSprite = this.add.container(120, 150);
     
     // Node body (geometric floating entity)

@@ -335,6 +335,12 @@ export const NPCDialogues: Record<string, NPCDialogue> = {
         text: 'The Sentinel awakens! You have mastered the art of key-value mapping.' 
       },
     ],
+    hint: [
+      {
+        speaker: 'Guardian',
+        text: 'The consoles respond only after you memorize the rune sequence to the north.',
+      },
+    ],
   },
   
   PROFESSOR_NODE: {

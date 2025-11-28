@@ -7,7 +7,8 @@
  * BOSS: The Shuffler
  */
 
-import { PuzzleConfig, BossConfig, PuzzleType, Difficulty, AlgorithmType } from '../../types';
+import type { PuzzleConfig, BossConfig } from '../../types';
+import { PuzzleType, Difficulty, AlgorithmType } from '../../types';
 
 // =============================================================================
 // AP1: FIX THE FARMLAND (Sorting - Bubble/Selection Sort)

@@ -2,47 +2,70 @@ import Phaser from 'phaser';
 import { BasePuzzleScene } from './BasePuzzleScene';
 
 /**
- * Puzzle P0-2: The Fractured Sentinel
+ * Shard definition with symbol properties
+ */
+interface FlowShard {
+  container: Phaser.GameObjects.Container;
+  id: string;
+  shape: 'triangle' | 'diamond' | 'circle';
+  stripe: 'double' | 'single' | 'triple';
+  color: number;
+  originalPosition: { x: number; y: number };
+  isPlaced: boolean;
+}
+
+/**
+ * Console definition with matching symbols
+ */
+interface FlowConsole {
+  container: Phaser.GameObjects.Container;
+  id: string;
+  shape: 'triangle' | 'diamond' | 'circle';
+  stripe: 'double' | 'single' | 'triple';
+  color: number;
+  position: { x: number; y: number };
+  isFilled: boolean;
+}
+
+/**
+ * Puzzle P0-2: Flow Consoles
  * Concept: Mapping, Key-Value Relationships, Hash Function Basics
  * 
- * The player must drag crystal shards to their matching sockets on the
- * Sentinel's frame. Each shard has a unique color that maps to a specific socket.
+ * Match crystal shards to their corresponding consoles based on symbol combinations.
+ * Each shard has a shape + stripe pattern that maps to exactly one console.
  */
 export class Puzzle_P0_2_Scene extends BasePuzzleScene {
-  // Shards and sockets
-  private shards: Phaser.GameObjects.Container[] = [];
-  private sockets: { x: number; y: number; color: string; filled: boolean }[] = [];
-  private socketGraphics: Phaser.GameObjects.Container[] = [];
+  // Shards and consoles
+  private shards: FlowShard[] = [];
+  private consoles: FlowConsole[] = [];
   
-  // Game state
-  private lockedShards: Set<string> = new Set();
-  private draggedShard: Phaser.GameObjects.Container | null = null;
-  private originalPositions: Map<string, { x: number; y: number }> = new Map();
+  // Central core
+  private centralCore!: Phaser.GameObjects.Container;
+  private flowLines: Phaser.GameObjects.Graphics[] = [];
   
   // UI elements
-  private sentinelFrame!: Phaser.GameObjects.Container;
   private statusText!: Phaser.GameObjects.Text;
-  private progressBar!: Phaser.GameObjects.Graphics;
+  private progressIndicator!: Phaser.GameObjects.Container;
   
-  // Shard definitions
-  private readonly shardDefs = [
-    { color: 'cyan', hex: 0x06b6d4, socketIndex: 0 },
-    { color: 'purple', hex: 0x8b5cf6, socketIndex: 1 },
-    { color: 'orange', hex: 0xf97316, socketIndex: 2 },
+  // Shard/Console definitions (shape + stripe = unique identifier)
+  private readonly definitions = [
+    { id: 'A', shape: 'triangle' as const, stripe: 'double' as const, color: 0xef4444 }, // Red
+    { id: 'B', shape: 'diamond' as const, stripe: 'single' as const, color: 0x3b82f6 },  // Blue
+    { id: 'C', shape: 'circle' as const, stripe: 'triple' as const, color: 0x22c55e },   // Green
   ];
   
   // Hints
   private hints: string[] = [
-    'Match the shard colors to the socket colors.',
-    'Cyan goes to the top, Purple in the middle...',
-    'Look at the socket glow colors!'
+    'Look at both the SHAPE and the STRIPE pattern on each shard.',
+    'Triangle + double lines → find the console with triangle + double lines.',
+    'Match shapes first, then confirm the stripe pattern matches too!'
   ];
 
   constructor() {
     super({ key: 'Puzzle_P0_2_Scene' });
-    this.puzzleId = 'P0_2';
-    this.puzzleName = 'THE FRACTURED SENTINEL';
-    this.puzzleDescription = 'Restore the Sentinel by placing each shard in its matching socket.';
+    this.puzzleId = 'P0-2';
+    this.puzzleName = 'FLOW CONSOLES';
+    this.puzzleDescription = 'Match each shard to its console. Both shape AND stripe must match!';
   }
 
   create(): void {
@@ -50,13 +73,11 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
     
     // Reset state
     this.shards = [];
-    this.sockets = [];
-    this.socketGraphics = [];
-    this.lockedShards = new Set();
-    this.draggedShard = null;
-    this.originalPositions = new Map();
+    this.consoles = [];
+    this.flowLines = [];
+    // draggedShard tracking removed - not currently used
     
-    // Create puzzle-specific UI
+    // Create puzzle elements
     this.createPuzzleArea();
     
     // Setup drag events
@@ -64,216 +85,265 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
   }
 
   /**
-   * Create the puzzle area with Sentinel and shards
+   * Create the puzzle area with all elements
    */
   private createPuzzleArea(): void {
     const { width, height } = this.cameras.main;
     const centerX = width / 2;
-    const centerY = height / 2 + 20;
+    const centerY = height / 2;
     
     // Status text
-    this.statusText = this.add.text(centerX, 150, 'Drag each shard to its matching socket', {
-      fontSize: '14px',
+    this.statusText = this.add.text(centerX, 145, 'Drag each shard to its matching console', {
+      fontSize: '12px',
       fontFamily: 'monospace',
       color: '#9ca3af',
     }).setOrigin(0.5);
     
-    // Create Sentinel frame
-    this.createSentinelFrame(centerX, centerY);
+    // Create central core (activates when all connected)
+    this.createCentralCore(centerX, centerY - 60);
     
-    // Create sockets on the frame
-    this.createSockets(centerX, centerY);
+    // Create consoles (above core)
+    this.createConsoles(centerX, centerY - 20);
     
-    // Create shards (scattered)
-    this.createShards(centerX, centerY);
+    // Create shards (scattered below)
+    this.createShards(centerX, centerY + 120);
     
-    // Create progress bar
-    this.createProgressBar();
+    // Create progress indicator
+    this.createProgressIndicator(centerX, height - 95);
+    
+    // Create legend showing symbol meanings
+    this.createSymbolLegend(80, 200);
   }
 
   /**
-   * Create the Sentinel frame visual
+   * Create the central core that activates when all consoles are filled
    */
-  private createSentinelFrame(centerX: number, centerY: number): void {
-    this.sentinelFrame = this.add.container(centerX, centerY);
+  private createCentralCore(x: number, y: number): void {
+    this.centralCore = this.add.container(x, y);
     
-    // Main frame body
-    const frameGraphics = this.add.graphics();
+    // Outer ring
+    const outerRing = this.add.graphics();
+    outerRing.lineStyle(4, 0x4a4a6a, 1);
+    outerRing.strokeCircle(0, 0, 50);
+    outerRing.setName('outerRing');
     
-    // Outer frame shadow
-    frameGraphics.fillStyle(0x000000, 0.4);
-    frameGraphics.fillRoundedRect(-65, -125, 130, 250, 16);
+    // Inner ring
+    const innerRing = this.add.graphics();
+    innerRing.lineStyle(3, 0x3a3a5a, 1);
+    innerRing.strokeCircle(0, 0, 35);
     
-    // Main frame body
-    frameGraphics.fillStyle(0x2a2a4a, 1);
-    frameGraphics.fillRoundedRect(-60, -120, 120, 240, 12);
+    // Core (inactive)
+    const core = this.add.circle(0, 0, 25, 0x2a2a4a);
+    core.setName('core');
     
-    // Frame border
-    frameGraphics.lineStyle(4, 0x4a4a6a, 1);
-    frameGraphics.strokeRoundedRect(-60, -120, 120, 240, 12);
+    // Core eye (activates on completion)
+    const coreEye = this.add.circle(0, 0, 15, 0x1a1a2e);
+    coreEye.setName('coreEye');
     
-    // Inner decorative lines
-    frameGraphics.lineStyle(2, 0x3a3a5a, 0.8);
-    frameGraphics.strokeRoundedRect(-50, -110, 100, 220, 8);
-    
-    // Central eye socket (decorative)
-    frameGraphics.fillStyle(0x1a1a2e, 1);
-    frameGraphics.fillCircle(0, -60, 25);
-    frameGraphics.lineStyle(2, 0x4a4a6a, 1);
-    frameGraphics.strokeCircle(0, -60, 25);
-    
-    // Sentinel "eye" that will glow when complete
-    const eye = this.add.circle(0, -60, 18, 0x2a2a4a);
-    eye.setName('sentinel-eye');
-    
-    // Decorative runes
-    const runes = this.add.text(0, 130, '◆ ◇ ◆', {
-      fontSize: '16px',
+    // Label
+    const label = this.add.text(0, 70, 'CENTRAL CORE', {
+      fontSize: '8px',
+      fontFamily: '"Press Start 2P", monospace',
       color: '#4a4a6a',
     }).setOrigin(0.5);
-        
-    this.sentinelFrame.add([frameGraphics, eye, runes]);
-  }
-
-  /**
-   * Create socket positions on the Sentinel
-   */
-  private createSockets(centerX: number, centerY: number): void {
-    const socketPositions = [
-      { y: -20, color: 'cyan', hex: 0x06b6d4 },
-      { y: 30, color: 'purple', hex: 0x8b5cf6 },
-      { y: 80, color: 'orange', hex: 0xf97316 },
-    ];
     
-    socketPositions.forEach((pos, index) => {
-      // Store socket data
-      this.sockets.push({
-        x: centerX,
-        y: centerY + pos.y,
-        color: pos.color,
-        filled: false,
-      });
-      
-      // Create socket visual
-      const socketContainer = this.add.container(centerX, centerY + pos.y);
-      
-      // Socket background
-      const socketBg = this.add.circle(0, 0, 28, 0x1a1a2e);
-      
-      // Socket border with color hint
-      const socketBorder = this.add.graphics();
-      socketBorder.lineStyle(3, pos.hex, 0.6);
-      socketBorder.strokeCircle(0, 0, 28);
-      
-      // Inner glow pulse
-      const innerGlow = this.add.circle(0, 0, 20, pos.hex, 0.2);
-      
-      // Pulsing animation
-      this.tweens.add({
-        targets: innerGlow,
-        alpha: 0.4,
-        scale: 1.1,
-        duration: 1000,
-        yoyo: true,
-        repeat: -1,
-      });
-      
-      socketContainer.add([socketBg, innerGlow, socketBorder]);
-      socketContainer.setData('color', pos.color);
-      socketContainer.setData('index', index);
-      this.socketGraphics.push(socketContainer);
+    this.centralCore.add([outerRing, innerRing, core, coreEye, label]);
+    
+    // Subtle pulse animation
+    this.tweens.add({
+      targets: core,
+      scale: 1.05,
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
     });
   }
 
   /**
-   * Create draggable shards
+   * Create the three consoles
+   */
+  private createConsoles(centerX: number, centerY: number): void {
+    const consoleSpacing = 140;
+    const consolePositions = [
+      { x: centerX - consoleSpacing, y: centerY },
+      { x: centerX, y: centerY + 40 },
+      { x: centerX + consoleSpacing, y: centerY },
+    ];
+    
+    // Shuffle definition assignment for consoles (keeps puzzle interesting)
+    const shuffledDefs = [...this.definitions].sort(() => Math.random() - 0.5);
+    
+    shuffledDefs.forEach((def, index) => {
+      const pos = consolePositions[index];
+      const console = this.createConsole(pos.x, pos.y, def);
+      this.consoles.push(console);
+    });
+  }
+
+  /**
+   * Create a single console
+   */
+  private createConsole(x: number, y: number, def: typeof this.definitions[0]): FlowConsole {
+    const container = this.add.container(x, y);
+    
+    // Console body shadow
+    const shadow = this.add.graphics();
+    shadow.fillStyle(0x000000, 0.4);
+    shadow.fillRoundedRect(-38, -28, 76, 56, 8);
+    
+    // Console body
+    const body = this.add.graphics();
+    body.fillStyle(0x2a2a4a, 1);
+    body.fillRoundedRect(-35, -25, 70, 50, 6);
+    body.lineStyle(2, 0x4a4a6a, 1);
+    body.strokeRoundedRect(-35, -25, 70, 50, 6);
+    
+    // Display screen showing required symbol
+    const screen = this.add.graphics();
+    screen.fillStyle(0x1a1a2e, 1);
+    screen.fillRect(-28, -18, 56, 28);
+    screen.lineStyle(1, def.color, 0.5);
+    screen.strokeRect(-28, -18, 56, 28);
+    
+    // Symbol on screen (shape)
+    const symbolGraphics = this.add.graphics();
+    symbolGraphics.fillStyle(def.color, 0.8);
+    this.drawShape(symbolGraphics, 0, -10, def.shape, 12);
+    
+    // Stripe indicator below shape
+    const stripeGraphics = this.add.graphics();
+    stripeGraphics.lineStyle(2, def.color, 0.8);
+    this.drawStripe(stripeGraphics, 0, 3, def.stripe);
+    
+    // Socket indicator (where shard goes)
+    const socket = this.add.graphics();
+    socket.fillStyle(0x1a1a2e, 1);
+    socket.fillCircle(0, 35, 18);
+    socket.lineStyle(2, def.color, 0.4);
+    socket.strokeCircle(0, 35, 18);
+    socket.setName('socket');
+    
+    // Pulsing glow hint
+    const socketGlow = this.add.circle(0, 35, 22, def.color, 0.15);
+    socketGlow.setName('socketGlow');
+    this.tweens.add({
+      targets: socketGlow,
+      scale: 1.2,
+      alpha: 0.3,
+      duration: 1200,
+      yoyo: true,
+      repeat: -1,
+    });
+    
+    container.add([shadow, body, screen, symbolGraphics, stripeGraphics, socketGlow, socket]);
+    container.setData('def', def);
+    
+    return {
+      container,
+      id: def.id,
+      shape: def.shape,
+      stripe: def.stripe,
+      color: def.color,
+      position: { x, y },
+      isFilled: false,
+    };
+  }
+
+  /**
+   * Create the three shards
    */
   private createShards(centerX: number, centerY: number): void {
     // Scattered positions for shards
     const shardPositions = [
-      { x: centerX - 180, y: centerY - 60 },
-      { x: centerX + 180, y: centerY + 20 },
-      { x: centerX - 150, y: centerY + 100 },
+      { x: centerX - 150, y: centerY + 20 },
+      { x: centerX + 30, y: centerY - 10 },
+      { x: centerX + 160, y: centerY + 30 },
     ];
     
-    this.shardDefs.forEach((def, index) => {
-      const pos = shardPositions[index];
-      const shard = this.createShard(pos.x, pos.y, def.color, def.hex);
-      
-      // Store original position for reset
-      this.originalPositions.set(def.color, { x: pos.x, y: pos.y });
-      
+    // Shuffle shard positions (different from console order)
+    const shuffledPositions = [...shardPositions].sort(() => Math.random() - 0.5);
+    
+    this.definitions.forEach((def, index) => {
+      const pos = shuffledPositions[index];
+      const shard = this.createShard(pos.x, pos.y, def);
       this.shards.push(shard);
     });
   }
 
   /**
-   * Create a single draggable shard
+   * Create a single shard
    */
-  private createShard(x: number, y: number, color: string, hex: number): Phaser.GameObjects.Container {
+  private createShard(x: number, y: number, def: typeof this.definitions[0]): FlowShard {
     const container = this.add.container(x, y);
     
     // Shard shadow
-    const shadow = this.add.ellipse(4, 4, 50, 40, 0x000000, 0.3);
+    const shadow = this.add.ellipse(3, 4, 44, 32, 0x000000, 0.35);
     
-    // Main shard body (hexagonal-ish crystal shape)
-    const shardGraphics = this.add.graphics();
+    // Crystal body (hexagonal shape)
+    const crystal = this.add.graphics();
+    crystal.fillStyle(def.color, 1);
+    crystal.beginPath();
+    crystal.moveTo(0, -22);
+    crystal.lineTo(16, -11);
+    crystal.lineTo(16, 11);
+    crystal.lineTo(0, 22);
+    crystal.lineTo(-16, 11);
+    crystal.lineTo(-16, -11);
+    crystal.closePath();
+    crystal.fillPath();
     
-    // Crystal shape
-    shardGraphics.fillStyle(hex, 1);
-    shardGraphics.beginPath();
-    shardGraphics.moveTo(0, -25);      // Top
-    shardGraphics.lineTo(18, -12);     // Top right
-    shardGraphics.lineTo(18, 12);      // Bottom right
-    shardGraphics.lineTo(0, 25);       // Bottom
-    shardGraphics.lineTo(-18, 12);     // Bottom left
-    shardGraphics.lineTo(-18, -12);    // Top left
-    shardGraphics.closePath();
-    shardGraphics.fillPath();
+    // Crystal highlight
+    crystal.fillStyle(0xffffff, 0.25);
+    crystal.beginPath();
+    crystal.moveTo(0, -22);
+    crystal.lineTo(16, -11);
+    crystal.lineTo(8, -6);
+    crystal.lineTo(-8, -6);
+    crystal.lineTo(-16, -11);
+    crystal.closePath();
+    crystal.fillPath();
     
-    // Highlight
-    shardGraphics.fillStyle(0xffffff, 0.3);
-    shardGraphics.beginPath();
-    shardGraphics.moveTo(0, -25);
-    shardGraphics.lineTo(18, -12);
-    shardGraphics.lineTo(8, -8);
-    shardGraphics.lineTo(-8, -8);
-    shardGraphics.lineTo(-18, -12);
-    shardGraphics.closePath();
-    shardGraphics.fillPath();
+    // Crystal border
+    crystal.lineStyle(2, this.adjustBrightness(def.color, 0.6), 1);
+    crystal.beginPath();
+    crystal.moveTo(0, -22);
+    crystal.lineTo(16, -11);
+    crystal.lineTo(16, 11);
+    crystal.lineTo(0, 22);
+    crystal.lineTo(-16, 11);
+    crystal.lineTo(-16, -11);
+    crystal.closePath();
+    crystal.strokePath();
     
-    // Border
-    shardGraphics.lineStyle(2, this.adjustBrightness(hex, 0.6), 1);
-    shardGraphics.beginPath();
-    shardGraphics.moveTo(0, -25);
-    shardGraphics.lineTo(18, -12);
-    shardGraphics.lineTo(18, 12);
-    shardGraphics.lineTo(0, 25);
-    shardGraphics.lineTo(-18, 12);
-    shardGraphics.lineTo(-18, -12);
-    shardGraphics.closePath();
-    shardGraphics.strokePath();
+    // Shape symbol inside
+    const symbol = this.add.graphics();
+    symbol.fillStyle(0xffffff, 0.9);
+    this.drawShape(symbol, 0, -4, def.shape, 8);
+    
+    // Stripe indicator
+    const stripe = this.add.graphics();
+    stripe.lineStyle(2, 0xffffff, 0.9);
+    this.drawStripe(stripe, 0, 8, def.stripe);
     
     // Inner glow
-    const glow = this.add.circle(0, 0, 15, hex, 0.4);
+    const glow = this.add.circle(0, 0, 14, def.color, 0.3);
     
-    container.add([shadow, shardGraphics, glow]);
-    container.setData('color', color);
-    container.setData('hex', hex);
-    container.setData('locked', false);
-    container.setSize(50, 60);
+    container.add([shadow, crystal, glow, symbol, stripe]);
+    container.setSize(40, 50);
+    container.setData('def', def);
     
-    // Make interactive for dragging
-    container.setInteractive({ 
-      hitArea: new Phaser.Geom.Rectangle(-25, -30, 50, 60),
+    // Make interactive
+    container.setInteractive({
+      hitArea: new Phaser.Geom.Rectangle(-20, -25, 40, 50),
       hitAreaCallback: Phaser.Geom.Rectangle.Contains,
       useHandCursor: true,
       draggable: true,
     });
     
-    // Hover effect
+    // Hover effects
     container.on('pointerover', () => {
-      if (!container.getData('locked')) {
+      if (!this.shards.find(s => s.container === container)?.isPlaced) {
         this.tweens.add({
           targets: container,
           scale: 1.15,
@@ -283,7 +353,7 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
     });
     
     container.on('pointerout', () => {
-      if (!container.getData('locked')) {
+      if (!this.shards.find(s => s.container === container)?.isPlaced) {
         this.tweens.add({
           targets: container,
           scale: 1,
@@ -295,204 +365,359 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
     // Floating animation
     this.tweens.add({
       targets: container,
-      y: y - 5,
-      duration: 1500,
+      y: y - 6,
+      duration: 1500 + Math.random() * 500,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
     });
     
-    return container;
+    return {
+      container,
+      id: def.id,
+      shape: def.shape,
+      stripe: def.stripe,
+      color: def.color,
+      originalPosition: { x, y },
+      isPlaced: false,
+    };
+  }
+
+  /**
+   * Draw a shape (triangle, diamond, circle)
+   */
+  private drawShape(graphics: Phaser.GameObjects.Graphics, x: number, y: number, shape: string, size: number): void {
+    switch (shape) {
+      case 'triangle':
+        graphics.fillTriangle(x, y - size, x - size, y + size * 0.7, x + size, y + size * 0.7);
+        break;
+      case 'diamond':
+        graphics.beginPath();
+        graphics.moveTo(x, y - size);
+        graphics.lineTo(x + size * 0.7, y);
+        graphics.lineTo(x, y + size);
+        graphics.lineTo(x - size * 0.7, y);
+        graphics.closePath();
+        graphics.fillPath();
+        break;
+      case 'circle':
+        graphics.fillCircle(x, y, size * 0.7);
+        break;
+    }
+  }
+
+  /**
+   * Draw stripe pattern (single, double, triple)
+   */
+  private drawStripe(graphics: Phaser.GameObjects.Graphics, x: number, y: number, stripe: string): void {
+    const lineWidth = 12;
+    const lineSpacing = 4;
+    
+    switch (stripe) {
+      case 'single':
+        graphics.lineBetween(x - lineWidth / 2, y, x + lineWidth / 2, y);
+        break;
+      case 'double':
+        graphics.lineBetween(x - lineWidth / 2, y - lineSpacing / 2, x + lineWidth / 2, y - lineSpacing / 2);
+        graphics.lineBetween(x - lineWidth / 2, y + lineSpacing / 2, x + lineWidth / 2, y + lineSpacing / 2);
+        break;
+      case 'triple':
+        graphics.lineBetween(x - lineWidth / 2, y - lineSpacing, x + lineWidth / 2, y - lineSpacing);
+        graphics.lineBetween(x - lineWidth / 2, y, x + lineWidth / 2, y);
+        graphics.lineBetween(x - lineWidth / 2, y + lineSpacing, x + lineWidth / 2, y + lineSpacing);
+        break;
+    }
+  }
+
+  /**
+   * Create symbol legend
+   */
+  private createSymbolLegend(x: number, y: number): void {
+    const container = this.add.container(x, y);
+    
+    // Background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x1a1a2e, 0.9);
+    bg.fillRoundedRect(-40, -20, 80, 160, 8);
+    bg.lineStyle(1, 0x4a4a6a);
+    bg.strokeRoundedRect(-40, -20, 80, 160, 8);
+    
+    // Title
+    const title = this.add.text(0, -10, 'SYMBOLS', {
+      fontSize: '8px',
+      fontFamily: '"Press Start 2P", monospace',
+      color: '#6a6a8a',
+    }).setOrigin(0.5);
+    
+    // Legend items
+    const items = [
+      { shape: 'triangle', label: '△ Triangle' },
+      { shape: 'diamond', label: '◇ Diamond' },
+      { shape: 'circle', label: '○ Circle' },
+    ];
+    
+    items.forEach((item, i) => {
+      const itemY = 20 + i * 35;
+      
+      const itemText = this.add.text(0, itemY, item.label, {
+        fontSize: '7px',
+        fontFamily: 'monospace',
+        color: '#9ca3af',
+      }).setOrigin(0.5);
+      
+      container.add(itemText);
+    });
+    
+    // Stripe legend
+    const stripeTitle = this.add.text(0, 120, 'STRIPES', {
+      fontSize: '6px',
+      fontFamily: 'monospace',
+      color: '#6a6a8a',
+    }).setOrigin(0.5);
+    
+    container.add([bg, title, stripeTitle]);
+  }
+
+  /**
+   * Create progress indicator
+   */
+  private createProgressIndicator(x: number, y: number): void {
+    this.progressIndicator = this.add.container(x, y);
+    this.updateProgressIndicator();
+  }
+
+  /**
+   * Update progress indicator
+   */
+  private updateProgressIndicator(): void {
+    this.progressIndicator.removeAll(true);
+    
+    const placedCount = this.shards.filter(s => s.isPlaced).length;
+    
+    // Progress text
+    const text = this.add.text(0, 0, `${placedCount} / 3 shards placed`, {
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      color: placedCount === 3 ? '#22c55e' : '#9ca3af',
+    }).setOrigin(0.5);
+    
+    // Progress dots
+    for (let i = 0; i < 3; i++) {
+      const dotX = (i - 1) * 25;
+      const filled = i < placedCount;
+      
+      const dot = this.add.circle(dotX, 20, 8, filled ? this.definitions[i].color : 0x2a2a4a);
+      dot.setStrokeStyle(2, filled ? this.definitions[i].color : 0x4a4a6a);
+      
+      this.progressIndicator.add(dot);
+    }
+    
+    this.progressIndicator.add(text);
   }
 
   /**
    * Setup drag events for shards
    */
   private setupDragEvents(): void {
-    this.input.on('dragstart', (
-      _pointer: Phaser.Input.Pointer, 
-      gameObject: Phaser.GameObjects.Container
-    ) => {
-      if (gameObject.getData('locked')) return;
+    this.input.on('dragstart', (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Container) => {
+      const shard = this.shards.find(s => s.container === gameObject);
+      if (!shard || shard.isPlaced) return;
       
-      this.draggedShard = gameObject;
+      // Track dragged shard for potential future use
+      void shard;
       gameObject.setDepth(100);
       
       // Stop floating animation
       this.tweens.killTweensOf(gameObject);
     });
     
-    this.input.on('drag', (
-      _pointer: Phaser.Input.Pointer, 
-      gameObject: Phaser.GameObjects.Container, 
-      dragX: number, 
-      dragY: number
-    ) => {
-      if (gameObject.getData('locked')) return;
+    this.input.on('drag', (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Container, dragX: number, dragY: number) => {
+      const shard = this.shards.find(s => s.container === gameObject);
+      if (!shard || shard.isPlaced) return;
       
       gameObject.x = dragX;
       gameObject.y = dragY;
+      
+      // Check proximity to consoles for visual feedback
+      this.checkProximityFeedback(shard);
     });
     
-    this.input.on('dragend', (
-      _pointer: Phaser.Input.Pointer, 
-      gameObject: Phaser.GameObjects.Container
-    ) => {
-      if (gameObject.getData('locked')) return;
+    this.input.on('dragend', (_pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.Container) => {
+      const shard = this.shards.find(s => s.container === gameObject);
+      if (!shard || shard.isPlaced) return;
       
-      this.draggedShard = null;
+      // draggedShard tracking removed - not currently used
       gameObject.setDepth(1);
       
-      this.checkSocketSnap(gameObject);
+      // Check if dropped on matching console
+      this.checkDrop(shard);
     });
   }
 
   /**
-   * Check if shard should snap to a socket
+   * Check proximity to consoles and provide visual feedback
    */
-  private checkSocketSnap(shard: Phaser.GameObjects.Container): void {
-  const shardColor = shard.getData('color');
-    const snapDistance = 50;
-  
-    for (let i = 0; i < this.sockets.length; i++) {
-      const socket = this.sockets[i];
-    const distance = Phaser.Math.Distance.Between(shard.x, shard.y, socket.x, socket.y);
+  private checkProximityFeedback(shard: FlowShard): void {
+    const snapDistance = 60;
     
-    if (distance < snapDistance) {
-        if (socket.color === shardColor && !socket.filled) {
-          // Correct match!
-          this.snapShardToSocket(shard, socket, i);
-          return;
-        } else if (socket.color !== shardColor) {
-          // Wrong socket
-          this.showWrongSocketFeedback(shard);
-          return;
+    for (const console of this.consoles) {
+      if (console.isFilled) continue;
+      
+      const distance = Phaser.Math.Distance.Between(
+        shard.container.x, shard.container.y,
+        console.position.x, console.position.y + 35 // Socket position
+      );
+      
+      const socketGlow = console.container.getByName('socketGlow') as Phaser.GameObjects.Arc;
+      
+      if (distance < snapDistance) {
+        // Check if it's a match
+        const isMatch = shard.shape === console.shape && shard.stripe === console.stripe;
+        
+        if (isMatch) {
+          socketGlow.setFillStyle(0x22c55e, 0.4);
+        } else {
+          socketGlow.setFillStyle(0xef4444, 0.4);
         }
+      } else {
+        socketGlow.setFillStyle(console.color, 0.15);
+      }
+    }
+  }
+
+  /**
+   * Check if shard was dropped on a console
+   */
+  private checkDrop(shard: FlowShard): void {
+    const snapDistance = 60;
+    
+    for (const console of this.consoles) {
+      if (console.isFilled) continue;
+      
+      const socketY = console.position.y + 35;
+      const distance = Phaser.Math.Distance.Between(
+        shard.container.x, shard.container.y,
+        console.position.x, socketY
+      );
+      
+      if (distance < snapDistance) {
+        // Check if it's a match
+        if (shard.shape === console.shape && shard.stripe === console.stripe) {
+          this.snapShardToConsole(shard, console);
+        } else {
+          this.showWrongPlacement(shard);
+        }
+        return;
       }
     }
     
-    // Not near any socket - restart floating animation
-    this.tweens.add({
-      targets: shard,
-      y: shard.y - 5,
-      duration: 1500,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
+    // Not dropped on any console - return to original position
+    this.returnShardToOriginal(shard);
   }
 
   /**
-   * Snap shard to socket with animation
+   * Snap shard into matching console
    */
-  private snapShardToSocket(
-    shard: Phaser.GameObjects.Container, 
-    socket: { x: number; y: number; color: string; filled: boolean },
-    socketIndex: number
-  ): void {
-    const shardColor = shard.getData('color');
-    const shardHex = shard.getData('hex');
+  private snapShardToConsole(shard: FlowShard, console: FlowConsole): void {
+    shard.isPlaced = true;
+    console.isFilled = true;
     
-    // Mark as locked
-    shard.setData('locked', true);
-    socket.filled = true;
-          this.lockedShards.add(shardColor);
+    const socketY = console.position.y + 35;
     
-    // Stop all tweens
-    this.tweens.killTweensOf(shard);
-          
     // Snap animation
-          this.tweens.add({
-            targets: shard,
-      x: socket.x,
-      y: socket.y,
-      scale: 1,
+    this.tweens.add({
+      targets: shard.container,
+      x: console.position.x,
+      y: socketY,
+      scale: 0.8,
       duration: 200,
       ease: 'Back.easeOut',
       onComplete: () => {
-        // Disable interaction
-        shard.disableInteractive();
+        shard.container.disableInteractive();
         
-        // Lock-in effects
-        this.createLockParticles(socket.x, socket.y, shardHex);
+        // Success effects
+        this.createPlacementParticles(console.position.x, socketY, shard.color);
         
-        // Pulse socket
-        const socketGraphic = this.socketGraphics[socketIndex];
+        // Pulse console
         this.tweens.add({
-          targets: socketGraphic,
-          scale: 1.2,
-            duration: 150,
-            yoyo: true,
+          targets: console.container,
+          scale: 1.1,
+          duration: 150,
+          yoyo: true,
         });
+        
+        // Create flow line to core
+        this.createFlowLine(console.position.x, socketY);
       },
     });
     
     // Update progress
-    this.updateProgress();
-    
-    // Update status
-    this.statusText.setText(`${this.lockedShards.size} / 3 shards placed`);
+    this.updateProgressIndicator();
+    this.statusText.setText(`${this.shards.filter(s => s.isPlaced).length} / 3 matched!`);
     
     // Check win condition
-    this.checkWinCondition();
+    this.time.delayedCall(300, () => this.checkWinCondition());
   }
 
   /**
-   * Show feedback for wrong socket attempt
+   * Show wrong placement feedback
    */
-  private showWrongSocketFeedback(shard: Phaser.GameObjects.Container): void {
-    // Increment attempts counter for wrong placement
+  private showWrongPlacement(shard: FlowShard): void {
     this.attempts++;
     
-    const originalPos = this.originalPositions.get(shard.getData('color'));
-    
     // Shake effect
-            this.tweens.add({
-            targets: shard,
-            x: shard.x + 10,
-            duration: 50,
-            yoyo: true,
-            repeat: 3,
+    this.tweens.add({
+      targets: shard.container,
+      x: shard.container.x + 10,
+      duration: 50,
+      yoyo: true,
+      repeat: 3,
       onComplete: () => {
-        // Return to original position
-        if (originalPos) {
-          this.tweens.add({
-            targets: shard,
-            x: originalPos.x,
-            y: originalPos.y,
-            duration: 300,
-            ease: 'Back.easeOut',
-            onComplete: () => {
-              // Restart floating animation
-              this.tweens.add({
-                targets: shard,
-                y: originalPos.y - 5,
-                duration: 1500,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut',
-              });
-            },
-          });
-        }
+        this.returnShardToOriginal(shard);
       },
     });
     
     // Show message
-    this.showMessage("That shard doesn't fit there...", this.COLORS.warning);
+    this.showMessage("Symbols don't match! Check shape AND stripe.", this.COLORS.warning);
     
     // Camera shake
     this.cameras.main.shake(100, 0.005);
   }
 
   /**
-   * Create lock-in particle effect
+   * Return shard to original position
    */
-  private createLockParticles(x: number, y: number, color: number): void {
+  private returnShardToOriginal(shard: FlowShard): void {
+    this.tweens.add({
+      targets: shard.container,
+      x: shard.originalPosition.x,
+      y: shard.originalPosition.y,
+      duration: 300,
+      ease: 'Back.easeOut',
+      onComplete: () => {
+        // Restart floating animation
+        this.tweens.add({
+          targets: shard.container,
+          y: shard.originalPosition.y - 6,
+          duration: 1500 + Math.random() * 500,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
+      },
+    });
+  }
+
+  /**
+   * Create particle effect on successful placement
+   */
+  private createPlacementParticles(x: number, y: number, color: number): void {
     for (let i = 0; i < 16; i++) {
-      const particle = this.add.circle(x, y, 4, color);
       const angle = (i / 16) * Math.PI * 2;
-      const distance = 50;
+      const distance = 40;
+      
+      const particle = this.add.circle(x, y, 4, color);
+      particle.setDepth(50);
       
       this.tweens.add({
         targets: particle,
@@ -508,52 +733,60 @@ export class Puzzle_P0_2_Scene extends BasePuzzleScene {
   }
 
   /**
-   * Create progress bar
+   * Create flow line from console to core
    */
-  private createProgressBar(): void {
-    this.progressBar = this.add.graphics();
-    this.updateProgress();
-  }
-
-  /**
-   * Update progress bar
-   */
-  private updateProgress(): void {
-    const { width } = this.cameras.main;
-    const barWidth = 200;
-    const barHeight = 12;
-    const x = width / 2 - barWidth / 2;
-    const y = this.cameras.main.height - 100;
+  private createFlowLine(fromX: number, fromY: number): void {
+    const { width, height } = this.cameras.main;
+    const coreX = width / 2;
+    const coreY = height / 2 - 60;
     
-    const progress = this.lockedShards.size / 3;
+    const flowLine = this.add.graphics();
+    flowLine.setDepth(0);
     
-    this.progressBar.clear();
+    // Animate line drawing
+    const steps = 20;
+    let currentStep = 0;
     
-    // Background
-    this.progressBar.fillStyle(0x2a2a4a, 1);
-    this.progressBar.fillRoundedRect(x, y, barWidth, barHeight, 6);
+    this.time.addEvent({
+      delay: 25,
+      callback: () => {
+        flowLine.clear();
+        flowLine.lineStyle(3, 0x06b6d4, 0.6);
+        
+        const progress = currentStep / steps;
+        const toX = fromX + (coreX - fromX) * progress;
+        const toY = fromY + (coreY + 50 - fromY) * progress;
+        
+        flowLine.lineBetween(fromX, fromY, toX, toY);
+        
+        currentStep++;
+        if (currentStep > steps) {
+          // Add glow effect at core end
+          const glowDot = this.add.circle(coreX, coreY + 50, 6, 0x06b6d4, 0.5);
+          this.tweens.add({
+            targets: glowDot,
+            scale: 0,
+            alpha: 0,
+            duration: 500,
+          });
+        }
+      },
+      repeat: steps,
+    });
     
-    // Progress fill
-    if (progress > 0) {
-      this.progressBar.fillStyle(this.COLORS.primary, 1);
-      this.progressBar.fillRoundedRect(x + 2, y + 2, (barWidth - 4) * progress, barHeight - 4, 4);
-    }
-    
-    // Border
-    this.progressBar.lineStyle(2, 0x4a4a6a, 1);
-    this.progressBar.strokeRoundedRect(x, y, barWidth, barHeight, 6);
+    this.flowLines.push(flowLine);
   }
 
   /**
    * Check win condition
    */
-private checkWinCondition(): void {
-    if (this.lockedShards.size === 3) {
+  private checkWinCondition(): void {
+    const allPlaced = this.shards.every(s => s.isPlaced);
+    
+    if (allPlaced) {
       this.time.delayedCall(500, () => {
-        // Sentinel awakening animation
-        this.awakenSentinel();
+        this.activateCore();
         
-        // Victory
         this.time.delayedCall(1500, () => {
           const stars = this.calculateStars();
           this.onPuzzleComplete(stars);
@@ -563,78 +796,80 @@ private checkWinCondition(): void {
   }
 
   /**
-   * Sentinel awakening animation
+   * Activate the central core
    */
-  private awakenSentinel(): void {
-    // Find the eye
-    const eye = this.sentinelFrame.getByName('sentinel-eye') as Phaser.GameObjects.Arc;
+  private activateCore(): void {
+    const core = this.centralCore.getByName('core') as Phaser.GameObjects.Arc;
+    const coreEye = this.centralCore.getByName('coreEye') as Phaser.GameObjects.Arc;
+    const outerRing = this.centralCore.getByName('outerRing') as Phaser.GameObjects.Graphics;
     
-    if (eye) {
-      // Eye glow animation
-      this.tweens.add({
-        targets: eye,
-        fillColor: { from: 0x2a2a4a, to: 0x06b6d4 },
-        duration: 500,
-      });
-      
-      // Pulse effect
-      this.tweens.add({
-        targets: eye,
-        scale: 1.3,
-        duration: 300,
-        yoyo: true,
-        repeat: 2,
-      });
-    }
-    
-    // Frame glow
+    // Core color change
     this.tweens.add({
-      targets: this.sentinelFrame,
-      alpha: 1.2,
+      targets: core,
+      fillColor: { from: 0x2a2a4a, to: 0x06b6d4 },
       duration: 500,
-      yoyo: true,
     });
     
+    // Eye glow
+    this.tweens.add({
+      targets: coreEye,
+      fillColor: { from: 0x1a1a2e, to: 0x00ffff },
+      duration: 500,
+    });
+    
+    // Pulse
+    this.tweens.add({
+      targets: this.centralCore,
+      scale: 1.2,
+      duration: 300,
+      yoyo: true,
+      repeat: 2,
+    });
+    
+    // Redraw outer ring with glow
+    outerRing.clear();
+    outerRing.lineStyle(4, 0x06b6d4, 1);
+    outerRing.strokeCircle(0, 0, 50);
+    
     // Status update
-    this.statusText.setText('🎉 SENTINEL RESTORED! 🎉');
+    this.statusText.setText('🎉 FLOW RESTORED!');
     this.statusText.setColor('#22c55e');
     
     // Camera flash
-    this.cameras.main.flash(500, 100, 50, 150);
+    this.cameras.main.flash(500, 6, 182, 212);
   }
 
   /**
    * Calculate star rating
    */
   private calculateStars(): number {
-    // 3 stars: No wrong attempts, no hints
-    // 2 stars: 1-2 wrong attempts or 1 hint
-    // 1 star: Completed
-    
-    if (this.attempts === 0 && this.hintsUsed === 0) {
-      return 3;
-    } else if (this.attempts <= 2 && this.hintsUsed <= 1) {
-      return 2;
-    }
+    if (this.attempts === 0 && this.hintsUsed === 0) return 3;
+    if (this.attempts <= 2 && this.hintsUsed <= 1) return 2;
     return 1;
   }
 
   /**
-   * Display hint based on hint number
+   * Display hint
    */
   protected displayHint(hintNumber: number): void {
-    this.showMessage(this.hints[hintNumber - 1], this.COLORS.accent);
+    this.showMessage(this.hints[Math.min(hintNumber - 1, this.hints.length - 1)], this.COLORS.accent);
     
-    // Visual hint: highlight sockets briefly
+    // Visual hint: pulse matching pairs
     if (hintNumber >= 2) {
-      this.socketGraphics.forEach((socket, index) => {
-        this.tweens.add({
-          targets: socket,
-          scale: 1.3,
-          duration: 300,
-          delay: index * 200,
-          yoyo: true,
-        });
+      this.shards.filter(s => !s.isPlaced).forEach(shard => {
+        const matchingConsole = this.consoles.find(c => 
+          c.shape === shard.shape && c.stripe === shard.stripe && !c.isFilled
+        );
+        
+        if (matchingConsole) {
+          // Highlight both
+          this.tweens.add({
+            targets: [shard.container, matchingConsole.container],
+            scale: 1.2,
+            duration: 300,
+            yoyo: true,
+          });
+        }
       });
     }
   }

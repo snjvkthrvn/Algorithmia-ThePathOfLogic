@@ -3,7 +3,7 @@
  * Tutorial region introducing basic game mechanics and sequential thinking
  */
 
-import { RegionConfig } from '../../types';
+import type { RegionConfig } from '../../types';
 
 export const prologueConfig: RegionConfig = {
   id: 'prologue',

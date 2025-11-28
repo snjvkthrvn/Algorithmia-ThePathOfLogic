@@ -3,7 +3,8 @@
  * Farm workers and villagers who teach array-based algorithms
  */
 
-import { NPCConfig, NPCType } from '../../types';
+import type { NPCConfig } from '../../types';
+import { NPCType } from '../../types';
 
 // =============================================================================
 // SORTING FARMER (AP1 - East Storage Shed)

@@ -3,7 +3,7 @@
  * Region 2: Teaching pointer-based algorithms and traversal techniques
  */
 
-import { RegionConfig } from '../../types';
+import type { RegionConfig } from '../../types';
 
 export const twinRiversConfig: RegionConfig = {
   id: 'twinrivers',

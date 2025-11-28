@@ -13,6 +13,7 @@ interface ConceptData {
   stars?: number;
   description?: string;
   code?: string;
+  returnScene?: string;
 }
 
 /**
@@ -43,26 +44,56 @@ for (let i = 0; i < pattern.length; i++) {
   'Mapping & Hash Functions': {
     description: `You just discovered one of programming's most powerful concepts: MAPPING.
 
-Each crystal shard had a unique property (color) that determined exactly where it belonged. This is the essence of a HASH MAP - a data structure where each KEY maps to exactly one VALUE.
+Each crystal shard had a unique combination of properties (shape AND stripe) that determined exactly where it belonged. This is the essence of a HASH MAP - a data structure where each KEY maps to exactly one VALUE.
 
-The sockets acted like "addresses" - given a shard's color, you instantly knew where to put it. No searching required!`,
+The sockets acted like "addresses" - given a shard's symbol combination, you instantly knew where to put it. No searching required! This is called O(1) lookup.`,
     steps: [
-      '1. Each KEY (color) maps to one VALUE (socket)',
+      '1. Each KEY (symbol combo) maps to one VALUE (socket)',
       '2. Looking up a key is instant (O(1) time)',
       '3. The mapping rule is called a HASH FUNCTION',
       '4. This enables fast lookup and storage',
     ],
     code: `// Hash Map in Action
-const sentinel = new Map();
+const flowConsole = new Map();
 
-// Each key maps to exactly one value
-sentinel.set("cyan",   topSocket);
-sentinel.set("purple", middleSocket);
-sentinel.set("orange", bottomSocket);
+// Each unique key maps to exactly one value
+flowConsole.set("triangle-double",  socketA);
+flowConsole.set("diamond-single",   socketB);
+flowConsole.set("circle-triple",    socketC);
 
-// Instant lookup - no searching!
-const socket = sentinel.get("purple");
-// Returns: middleSocket`,
+// Instant lookup by key - no searching!
+const socket = flowConsole.get("triangle-double");
+// Returns: socketA`,
+  },
+  
+  'Combined Pattern & Mapping Mastery': {
+    description: `You've demonstrated mastery of COMBINING fundamental concepts!
+
+The Sentinel tested you with SEQUENTIAL PATTERNS (remembering and repeating tile sequences) AND MAPPING (connecting shards to sockets by their symbols) - often at the same time.
+
+This is how real algorithms work: they combine simple building blocks into complex solutions. Every advanced algorithm you'll encounter builds upon these foundations.`,
+    steps: [
+      '1. DECOMPOSE the problem into sub-tasks',
+      '2. Apply SEQUENCES for ordered operations',
+      '3. Apply MAPPING for key-value relationships',
+      '4. COMBINE techniques for complex solutions',
+    ],
+    code: `// Combining Concepts
+function solveComplex(patterns, shards) {
+    // Step 1: Process sequences in order
+    for (const pattern of patterns) {
+        executeSequence(pattern);
+    }
+    
+    // Step 2: Map shards to sockets
+    const mapping = new Map();
+    for (const shard of shards) {
+        const key = shard.shape + "-" + shard.stripe;
+        mapping.set(key, findSocket(shard));
+    }
+    
+    // Combined solution achieved!
+}`,
   },
   
   'Sorting Algorithms': {
@@ -98,7 +129,6 @@ function bubbleSort(array) {
  */
 export class ConceptBridgeScene extends Phaser.Scene {
   // UI Elements
-  private container!: Phaser.GameObjects.Container;
   private professorSprite!: Phaser.GameObjects.Container;
   private textContent!: Phaser.GameObjects.Text;
   private codeBlock!: Phaser.GameObjects.Container;
@@ -107,7 +137,6 @@ export class ConceptBridgeScene extends Phaser.Scene {
   // State
   private currentSection: number = 0;
   private conceptData!: ConceptData;
-  private sections: string[] = [];
   
   // Colors
   private readonly COLORS = {
@@ -134,8 +163,8 @@ export class ConceptBridgeScene extends Phaser.Scene {
     // Background
     this.add.rectangle(0, 0, width, height, this.COLORS.bg, 0.95).setOrigin(0);
     
-    // Main container
-    this.container = this.add.container(0, 0);
+    // Main container (kept for potential future use)
+    this.add.container(0, 0);
     
     // Create Professor Node
     this.createProfessorNode(width);
@@ -161,7 +190,7 @@ export class ConceptBridgeScene extends Phaser.Scene {
   /**
    * Create Professor Node character
    */
-  private createProfessorNode(width: number): void {
+  private createProfessorNode(_width: number): void {
     this.professorSprite = this.add.container(120, 150);
     
     // Node body (geometric floating entity)
@@ -471,10 +500,25 @@ Press SPACE to return to the world...`;
     this.currentSection++;
     
     if (this.currentSection >= 4) {
-      // Exit to game
+      // Exit to appropriate scene based on puzzle
       this.cameras.main.fadeOut(500, 0, 0, 0);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-        this.scene.start('GameScene');
+        // Determine return scene based on puzzle ID
+        const puzzleId = this.conceptData.puzzleId || '';
+        let returnScene = 'PrologueScene'; // Default for prologue puzzles
+        
+        if (puzzleId.startsWith('AP')) {
+          returnScene = 'GameScene'; // Array Plains puzzles
+        } else if (puzzleId.startsWith('TR')) {
+          returnScene = 'TwinRiversScene'; // Twin Rivers puzzles
+        }
+        
+        // Pass completion data back to the overworld
+        this.scene.start(returnScene, {
+          fromPuzzle: this.conceptData.puzzleName,
+          puzzleStatus: 'completed',
+          puzzleId: puzzleId,
+        });
       });
     } else {
       this.showSection(this.currentSection);

@@ -8,48 +8,52 @@
 // ENUMS & CONSTANTS
 // ============================================================================
 
-export enum Difficulty {
-  VERY_EASY = 'very_easy',
-  EASY = 'easy',
-  MEDIUM = 'medium',
-  HARD = 'hard',
-  VERY_HARD = 'very_hard'
-}
+export const Difficulty = {
+  VERY_EASY: 'very_easy',
+  EASY: 'easy',
+  MEDIUM: 'medium',
+  HARD: 'hard',
+  VERY_HARD: 'very_hard'
+} as const;
+export type Difficulty = typeof Difficulty[keyof typeof Difficulty];
 
-export enum AlgorithmType {
+export const AlgorithmType = {
   // Prologue
-  PATTERN_MATCHING = 'pattern_matching',
-  SEQUENTIAL_REASONING = 'sequential_reasoning',
-  SPATIAL_MAPPING = 'spatial_mapping',
+  PATTERN_MATCHING: 'pattern_matching',
+  SEQUENTIAL_REASONING: 'sequential_reasoning',
+  SPATIAL_MAPPING: 'spatial_mapping',
 
   // Array Plains
-  SORTING = 'sorting',
-  ARRAY_INDEXING = 'array_indexing',
-  HASHING = 'hashing',
-  TWO_SUM = 'two_sum',
+  SORTING: 'sorting',
+  ARRAY_INDEXING: 'array_indexing',
+  HASHING: 'hashing',
+  TWO_SUM: 'two_sum',
 
   // Twin Rivers
-  TWO_POINTERS = 'two_pointers',
-  POINTER_CONVERGENCE = 'pointer_convergence',
-  SLIDING_WINDOW = 'sliding_window',
-  ADVANCED_POINTERS = 'advanced_pointers',
+  TWO_POINTERS: 'two_pointers',
+  POINTER_CONVERGENCE: 'pointer_convergence',
+  SLIDING_WINDOW: 'sliding_window',
+  ADVANCED_POINTERS: 'advanced_pointers',
 
   // General
-  HYBRID = 'hybrid'
-}
+  HYBRID: 'hybrid'
+} as const;
+export type AlgorithmType = typeof AlgorithmType[keyof typeof AlgorithmType];
 
-export enum PuzzleType {
-  INTERACTIVE = 'interactive',
-  BOSS = 'boss',
-  MINI_FORGE = 'mini_forge'
-}
+export const PuzzleType = {
+  INTERACTIVE: 'interactive',
+  BOSS: 'boss',
+  MINI_FORGE: 'mini_forge'
+} as const;
+export type PuzzleType = typeof PuzzleType[keyof typeof PuzzleType];
 
-export enum NPCType {
-  MENTOR = 'mentor',
-  GUIDE = 'guide',
-  VILLAGER = 'villager',
-  BOSS = 'boss'
-}
+export const NPCType = {
+  MENTOR: 'mentor',
+  GUIDE: 'guide',
+  VILLAGER: 'villager',
+  BOSS: 'boss'
+} as const;
+export type NPCType = typeof NPCType[keyof typeof NPCType];
 
 // ============================================================================
 // REGION TYPES
@@ -274,7 +278,7 @@ export interface DialogueCondition {
 }
 
 export interface DialogueAction {
-  type: 'set_flag' | 'give_item' | 'unlock_puzzle' | 'trigger_cutscene';
+  type: 'set_flag' | 'give_item' | 'unlock_puzzle' | 'trigger_cutscene' | 'trigger_event';
   value: any;
 }
 

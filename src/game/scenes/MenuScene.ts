@@ -1,30 +1,14 @@
 import Phaser from 'phaser';
 
 /**
- * MenuScene - Retro pixel art main menu
- * Features animated starfield background and classic RPG-style UI
+ * MenuScene - Main menu with retro pixel art styling
  */
 export class MenuScene extends Phaser.Scene {
-  // UI elements
   private titleText!: Phaser.GameObjects.Text;
-  private subtitleText!: Phaser.GameObjects.Text;
-  private menuItems: Phaser.GameObjects.Container[] = [];
+  private menuButtons: Phaser.GameObjects.Container[] = [];
   private selectedIndex: number = 0;
-  
-  // Background elements
   private starfield: Phaser.GameObjects.Arc[] = [];
-  private crystals: Phaser.GameObjects.Container[] = [];
   
-  // Colors
-  private readonly COLORS = {
-    primary: 0x06b6d4,      // Cyan
-    secondary: 0x8b5cf6,    // Purple
-    accent: 0xfbbf24,       // Gold
-    text: '#ffffff',
-    textMuted: '#6b7280',
-    bg: 0x0a0a1a,
-  };
-
   constructor() {
     super({ key: 'MenuScene' });
   }
@@ -32,449 +16,413 @@ export class MenuScene extends Phaser.Scene {
   create(): void {
     const { width, height } = this.cameras.main;
     
-    // 1. Create animated background
-    this.createBackground(width, height);
+    // Background
+    this.cameras.main.setBackgroundColor('#0a0a1a');
     
-    // 2. Create title
-    this.createTitle(width);
+    // Create starfield
+    this.createStarfield();
     
-    // 3. Create menu items
-    this.createMenuItems(width, height);
+    // Create cosmic nebula effect
+    this.createNebulaEffect();
     
-    // 4. Create decorative elements
+    // Create title
+    this.createTitle(width, height);
+    
+    // Create menu options
+    this.createMenuButtons(width, height);
+    
+    // Create decorative elements
     this.createDecorations(width, height);
     
-    // 5. Setup input
+    // Setup input
     this.setupInput();
     
-    // 6. Create version info
-    this.createVersionInfo(width, height);
-    
-    // 7. Fade in
+    // Fade in
     this.cameras.main.fadeIn(500);
+    
+    // Start ambient animations
+    this.startAmbientAnimations();
   }
 
   /**
    * Create animated starfield background
    */
-  private createBackground(width: number, height: number): void {
-    // Solid background
-    this.add.rectangle(0, 0, width, height, this.COLORS.bg).setOrigin(0);
+  private createStarfield(): void {
+    const { width, height } = this.cameras.main;
     
-    // Gradient overlay
-    const gradient = this.add.graphics();
-    gradient.fillGradientStyle(
-      0x1a1a3e, 0x1a1a3e,
-      this.COLORS.bg, this.COLORS.bg,
-      0.5
-    );
-    gradient.fillRect(0, 0, width, height);
-    
-    // Create starfield
     for (let i = 0; i < 80; i++) {
       const x = Phaser.Math.Between(0, width);
       const y = Phaser.Math.Between(0, height);
       const size = Phaser.Math.Between(1, 3);
-      const alpha = Phaser.Math.FloatBetween(0.2, 0.8);
+      const alpha = Phaser.Math.FloatBetween(0.2, 0.6);
       
       const star = this.add.circle(x, y, size, 0xffffff, alpha);
+      star.setDepth(-10);
       
       // Twinkle animation
       this.tweens.add({
         targets: star,
-        alpha: alpha * 0.3,
-        duration: Phaser.Math.Between(800, 2000),
+        alpha: { from: alpha, to: alpha * 0.3 },
+        duration: Phaser.Math.Between(1000, 3000),
         yoyo: true,
         repeat: -1,
-        delay: Phaser.Math.Between(0, 1500),
+        delay: Phaser.Math.Between(0, 2000),
       });
       
       this.starfield.push(star);
     }
-    
-    // Shooting star effect (occasional)
-    this.time.addEvent({
-      delay: 5000,
-      callback: () => this.createShootingStar(width, height),
-      loop: true,
-    });
   }
 
   /**
-   * Create a shooting star effect
+   * Create nebula gradient effect
    */
-  private createShootingStar(width: number, height: number): void {
-    const startX = Phaser.Math.Between(0, width);
-    const startY = Phaser.Math.Between(0, height / 3);
+  private createNebulaEffect(): void {
+    const { width, height } = this.cameras.main;
     
-    const star = this.add.graphics();
-    star.fillStyle(0xffffff, 1);
-    star.fillCircle(0, 0, 3);
-    star.x = startX;
-    star.y = startY;
-    star.setDepth(10);
+    const nebula = this.add.graphics();
+    nebula.setDepth(-9);
     
-    // Trail
-    const trail = this.add.graphics();
-    trail.setDepth(9);
+    // Multiple gradient layers for depth
+    nebula.fillGradientStyle(0x1a1a3e, 0x0a0a1a, 0x1a1a3e, 0x0a0a1a, 0.3);
+    nebula.fillRect(0, 0, width, height);
     
-    this.tweens.add({
-      targets: star,
-      x: startX + 200,
-      y: startY + 100,
-      alpha: 0,
-      duration: 800,
-      onUpdate: () => {
-        trail.clear();
-        trail.lineStyle(2, 0xffffff, star.alpha * 0.5);
-        trail.lineBetween(star.x - 20, star.y - 10, star.x, star.y);
-      },
-      onComplete: () => {
-        star.destroy();
-        trail.destroy();
-      },
-    });
+    // Purple accent in corner
+    nebula.fillGradientStyle(0x8b5cf6, 0x0a0a1a, 0x0a0a1a, 0x0a0a1a, 0.15);
+    nebula.fillRect(0, 0, width / 2, height / 2);
   }
 
   /**
-   * Create game title
+   * Create title text with effects
    */
-  private createTitle(width: number): void {
+  private createTitle(width: number, height: number): void {
     // Main title
-    this.titleText = this.add.text(width / 2, 120, 'ALGORITHMIA', {
-      fontSize: '48px',
+    this.titleText = this.add.text(width / 2, height / 4, 'ALGORITHMIA', {
+      fontSize: '56px',
       fontFamily: '"Press Start 2P", monospace',
       color: '#06b6d4',
       stroke: '#000000',
       strokeThickness: 6,
     }).setOrigin(0.5);
     
-    // Subtle glow animation
-    this.tweens.add({
-      targets: this.titleText,
-      alpha: 0.8,
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-    });
-
+    // Title glow effect
+    if (this.titleText.postFX) {
+      this.titleText.postFX.addGlow(0x06b6d4, 4, 0, false, 0.1, 16);
+    }
+    
     // Subtitle
-    this.subtitleText = this.add.text(width / 2, 180, 'THE PATH OF LOGIC', {
-      fontSize: '18px',
+    this.add.text(width / 2, height / 4 + 60, 'The Path of Logic', {
+      fontSize: '20px',
       fontFamily: '"Press Start 2P", monospace',
       color: '#8b5cf6',
-      stroke: '#000000',
-      strokeThickness: 3,
     }).setOrigin(0.5);
     
-    // Decorative line under title
-    const line = this.add.graphics();
-    line.lineStyle(2, this.COLORS.primary, 0.5);
-    line.lineBetween(width / 2 - 200, 210, width / 2 + 200, 210);
+    // Animated underline
+    const underline = this.add.graphics();
+    underline.lineStyle(3, 0x06b6d4, 0.8);
+    underline.lineBetween(width / 2 - 200, height / 4 + 90, width / 2 + 200, height / 4 + 90);
   }
 
   /**
-   * Create menu items
+   * Create menu buttons
    */
-  private createMenuItems(width: number, height: number): void {
-    const items = [
-      { text: 'NEW GAME', action: () => this.startNewGame() },
-      { text: 'CONTINUE', action: () => this.continueGame(), disabled: !this.hasSaveData() },
-      { text: 'CODEX', action: () => this.openCodex(), disabled: true },
-      { text: 'SETTINGS', action: () => this.openSettings() },
+  private createMenuButtons(width: number, height: number): void {
+    const menuOptions = [
+      { text: 'START GAME', action: () => this.startGame() },
+      { text: 'CONTINUE', action: () => this.continueGame() },
+      { text: 'OPTIONS', action: () => this.showOptions() },
+      { text: 'CODEX', action: () => this.showCodex() },
     ];
     
     const startY = height / 2 + 20;
-    const spacing = 50;
+    const spacing = 55;
     
-    items.forEach((item, index) => {
-      const menuItem = this.createMenuItem(
-      width / 2,
-        startY + index * spacing, 
-        item.text, 
-        item.action,
-        item.disabled
-      );
-      this.menuItems.push(menuItem);
+    menuOptions.forEach((option, index) => {
+      const button = this.createMenuButton(width / 2, startY + index * spacing, option.text, option.action);
+      this.menuButtons.push(button);
     });
     
-    // Highlight first item
+    // Highlight first button
     this.updateSelection();
   }
 
   /**
-   * Create a single menu item
+   * Create a single menu button
    */
-  private createMenuItem(
-    x: number, 
-    y: number, 
-    text: string, 
-    action: () => void,
-    disabled: boolean = false
-  ): Phaser.GameObjects.Container {
+  private createMenuButton(x: number, y: number, text: string, callback: () => void): Phaser.GameObjects.Container {
     const container = this.add.container(x, y);
     
+    // Button background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x1a1a3e, 0.8);
+    bg.fillRoundedRect(-140, -20, 280, 40, 8);
+    bg.lineStyle(2, 0x4a4a6a, 1);
+    bg.strokeRoundedRect(-140, -20, 280, 40, 8);
+    
     // Selection indicator (hidden by default)
-    const indicator = this.add.text(-150, 0, '►', {
+    const selector = this.add.graphics();
+    selector.fillStyle(0x06b6d4, 1);
+    selector.fillTriangle(-155, 0, -145, -8, -145, 8);
+    selector.setVisible(false);
+    selector.setName('selector');
+    
+    // Button text
+    const buttonText = this.add.text(0, 0, text, {
       fontSize: '16px',
       fontFamily: '"Press Start 2P", monospace',
-      color: '#fbbf24',
+      color: '#9ca3af',
     }).setOrigin(0.5);
-    indicator.setVisible(false);
+    buttonText.setName('text');
     
-    // Menu text
-    const menuText = this.add.text(0, 0, text, {
-      fontSize: '16px',
-      fontFamily: '"Press Start 2P", monospace',
-      color: disabled ? '#4a5568' : '#ffffff',
-    }).setOrigin(0.5);
-    
-    container.add([indicator, menuText]);
-    container.setData('action', action);
-    container.setData('disabled', disabled);
-    container.setData('indicator', indicator);
-    container.setData('text', menuText);
+    container.add([bg, selector, buttonText]);
+    container.setData('callback', callback);
+    container.setData('index', this.menuButtons.length);
     
     // Make interactive
-    if (!disabled) {
-      menuText.setInteractive({ useHandCursor: true });
-      
-      menuText.on('pointerover', () => {
-        const idx = this.menuItems.indexOf(container);
-        if (idx !== -1) {
-          this.selectedIndex = idx;
-          this.updateSelection();
-        }
-      });
-      
-      menuText.on('pointerdown', () => {
-        this.selectCurrentItem();
-      });
-    }
+    const hitArea = this.add.rectangle(0, 0, 280, 40, 0xffffff, 0).setOrigin(0.5);
+    hitArea.setInteractive({ useHandCursor: true });
+    container.add(hitArea);
+    
+    hitArea.on('pointerover', () => {
+      this.selectedIndex = container.getData('index');
+      this.updateSelection();
+    });
+    
+    hitArea.on('pointerdown', () => {
+      this.selectCurrentOption();
+    });
     
     return container;
+  }
+
+  /**
+   * Update visual selection state
+   */
+  private updateSelection(): void {
+    this.menuButtons.forEach((button, index) => {
+      const selector = button.getByName('selector') as Phaser.GameObjects.Graphics;
+      const text = button.getByName('text') as Phaser.GameObjects.Text;
+      
+      if (index === this.selectedIndex) {
+        selector.setVisible(true);
+        text.setColor('#06b6d4');
+        
+        // Pulse animation
+        this.tweens.killTweensOf(button);
+        this.tweens.add({
+          targets: button,
+          scale: 1.05,
+          duration: 200,
+        });
+      } else {
+        selector.setVisible(false);
+        text.setColor('#9ca3af');
+        
+        this.tweens.killTweensOf(button);
+        this.tweens.add({
+          targets: button,
+          scale: 1,
+          duration: 200,
+        });
+      }
+    });
+  }
+
+  /**
+   * Select the current menu option
+   */
+  private selectCurrentOption(): void {
+    const button = this.menuButtons[this.selectedIndex];
+    const callback = button.getData('callback') as () => void;
+    
+    // Flash effect
+    this.cameras.main.flash(200, 6, 182, 212);
+    
+    // Execute callback
+    callback();
   }
 
   /**
    * Create decorative elements
    */
   private createDecorations(width: number, height: number): void {
-    // Floating crystals on sides
-    const crystalPositions = [
-      { x: 100, y: height / 2, color: 0x06b6d4 },
-      { x: width - 100, y: height / 2, color: 0x8b5cf6 },
+    // Floating tiles decoration
+    const tilePositions = [
+      { x: 100, y: 150 },
+      { x: width - 100, y: 200 },
+      { x: 150, y: height - 150 },
+      { x: width - 150, y: height - 200 },
     ];
     
-    crystalPositions.forEach(pos => {
-      const crystal = this.createCrystal(pos.x, pos.y, pos.color);
-      this.crystals.push(crystal);
+    tilePositions.forEach((pos, i) => {
+      const tile = this.add.graphics();
+      tile.fillStyle(0x1a1a3e, 0.5);
+      tile.fillRoundedRect(-25, -25, 50, 50, 8);
+      tile.lineStyle(2, 0x06b6d4, 0.3);
+      tile.strokeRoundedRect(-25, -25, 50, 50, 8);
+      tile.setPosition(pos.x, pos.y);
+      tile.setDepth(-5);
+      
+      // Float animation
+      this.tweens.add({
+        targets: tile,
+        y: pos.y - 10,
+        duration: 2000 + i * 300,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+      
+      // Rotate animation
+      this.tweens.add({
+        targets: tile,
+        angle: 5,
+        duration: 3000 + i * 500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
     });
     
-    // Bottom decorative pattern
-    const pattern = this.add.graphics();
-    pattern.lineStyle(1, this.COLORS.primary, 0.3);
+    // Version text
+    this.add.text(width - 20, height - 20, 'v0.1.0 Early Access', {
+      fontSize: '10px',
+      fontFamily: 'monospace',
+      color: '#4a4a6a',
+    }).setOrigin(1);
     
-    for (let i = 0; i < 10; i++) {
-      const y = height - 50 + i * 5;
-      pattern.lineBetween(0, y, width, y);
-    }
-  }
-
-  /**
-   * Create a decorative floating crystal
-   */
-  private createCrystal(x: number, y: number, color: number): Phaser.GameObjects.Container {
-    const container = this.add.container(x, y);
-    
-    // Crystal shape
-    const crystal = this.add.graphics();
-    crystal.fillStyle(color, 0.6);
-    crystal.beginPath();
-    crystal.moveTo(0, -30);
-    crystal.lineTo(15, 0);
-    crystal.lineTo(0, 30);
-    crystal.lineTo(-15, 0);
-    crystal.closePath();
-    crystal.fillPath();
-    
-    // Highlight
-    crystal.fillStyle(0xffffff, 0.3);
-    crystal.beginPath();
-    crystal.moveTo(0, -30);
-    crystal.lineTo(8, -5);
-    crystal.lineTo(0, 0);
-    crystal.lineTo(-8, -5);
-    crystal.closePath();
-    crystal.fillPath();
-    
-    // Glow
-    const glow = this.add.circle(0, 0, 20, color, 0.2);
-    
-    container.add([glow, crystal]);
-    
-    // Floating animation
-    this.tweens.add({
-      targets: container,
-      y: y - 20,
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
-    
-    // Rotate slightly
-    this.tweens.add({
-      targets: container,
-      angle: { from: -5, to: 5 },
-      duration: 3000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
-    
-    return container;
+    // Controls hint
+    this.add.text(width / 2, height - 40, 'Use ↑↓ or W/S to navigate, ENTER or SPACE to select', {
+      fontSize: '10px',
+      fontFamily: 'monospace',
+      color: '#4a4a6a',
+    }).setOrigin(0.5);
   }
 
   /**
    * Setup input handling
    */
   private setupInput(): void {
-    if (!this.input.keyboard) return;
-    
-    // Navigation
-    this.input.keyboard.on('keydown-UP', () => this.navigateMenu(-1));
-    this.input.keyboard.on('keydown-W', () => this.navigateMenu(-1));
-    this.input.keyboard.on('keydown-DOWN', () => this.navigateMenu(1));
-    this.input.keyboard.on('keydown-S', () => this.navigateMenu(1));
-    
-    // Selection
-    this.input.keyboard.on('keydown-ENTER', () => this.selectCurrentItem());
-    this.input.keyboard.on('keydown-SPACE', () => this.selectCurrentItem());
+    this.input.keyboard?.on('keydown-UP', () => this.navigateUp());
+    this.input.keyboard?.on('keydown-W', () => this.navigateUp());
+    this.input.keyboard?.on('keydown-DOWN', () => this.navigateDown());
+    this.input.keyboard?.on('keydown-S', () => this.navigateDown());
+    this.input.keyboard?.on('keydown-ENTER', () => this.selectCurrentOption());
+    this.input.keyboard?.on('keydown-SPACE', () => this.selectCurrentOption());
   }
 
   /**
-   * Navigate menu
+   * Navigate up in menu
    */
-  private navigateMenu(direction: number): void {
-    // Find next non-disabled item
-    let newIndex = this.selectedIndex;
-    const maxAttempts = this.menuItems.length;
-    let attempts = 0;
-    
-    do {
-      newIndex = (newIndex + direction + this.menuItems.length) % this.menuItems.length;
-      attempts++;
-    } while (this.menuItems[newIndex].getData('disabled') && attempts < maxAttempts);
-    
-    if (!this.menuItems[newIndex].getData('disabled')) {
-      this.selectedIndex = newIndex;
-      this.updateSelection();
-    }
+  private navigateUp(): void {
+    this.selectedIndex = (this.selectedIndex - 1 + this.menuButtons.length) % this.menuButtons.length;
+    this.updateSelection();
   }
 
   /**
-   * Update menu selection visuals
+   * Navigate down in menu
    */
-  private updateSelection(): void {
-    this.menuItems.forEach((item, index) => {
-      const indicator = item.getData('indicator') as Phaser.GameObjects.Text;
-      const text = item.getData('text') as Phaser.GameObjects.Text;
-      const disabled = item.getData('disabled') as boolean;
-      
-      if (index === this.selectedIndex && !disabled) {
-        indicator.setVisible(true);
-        text.setColor('#fbbf24');
-        
-        // Bounce animation for indicator
-        this.tweens.killTweensOf(indicator);
-        this.tweens.add({
-          targets: indicator,
-          x: -145,
-          duration: 300,
-          yoyo: true,
-          repeat: -1,
-        });
-      } else {
-        indicator.setVisible(false);
-        text.setColor(disabled ? '#4a5568' : '#ffffff');
-        this.tweens.killTweensOf(indicator);
-      }
+  private navigateDown(): void {
+    this.selectedIndex = (this.selectedIndex + 1) % this.menuButtons.length;
+    this.updateSelection();
+  }
+
+  /**
+   * Start ambient animations
+   */
+  private startAmbientAnimations(): void {
+    // Title pulse
+    this.tweens.add({
+      targets: this.titleText,
+      scale: 1.02,
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
     });
-  }
-
-  /**
-   * Select current menu item
-   */
-  private selectCurrentItem(): void {
-    const item = this.menuItems[this.selectedIndex];
-    if (item && !item.getData('disabled')) {
-      // Flash effect
-      this.cameras.main.flash(100, 6, 182, 212);
+    
+    // Floating particles
+    for (let i = 0; i < 20; i++) {
+      const particle = this.add.circle(
+        Phaser.Math.Between(0, this.cameras.main.width),
+        Phaser.Math.Between(this.cameras.main.height / 2, this.cameras.main.height),
+        2,
+        0x06b6d4,
+        0.3
+      );
+      particle.setDepth(-5);
       
-      const action = item.getData('action') as () => void;
-      if (action) {
-        action();
-      }
+      this.tweens.add({
+        targets: particle,
+        y: particle.y - Phaser.Math.Between(100, 300),
+        alpha: 0,
+        duration: Phaser.Math.Between(4000, 8000),
+        delay: Phaser.Math.Between(0, 3000),
+        repeat: -1,
+        onRepeat: () => {
+          particle.x = Phaser.Math.Between(0, this.cameras.main.width);
+          particle.y = Phaser.Math.Between(this.cameras.main.height / 2, this.cameras.main.height);
+          particle.alpha = 0.3;
+        },
+      });
     }
   }
 
   /**
-   * Check if save data exists
+   * Start a new game
    */
-  private hasSaveData(): boolean {
-    // TODO: Implement actual save data check
-    return localStorage.getItem('algorithmia_save') !== null;
-  }
-
-  /**
-   * Start new game
-   */
-  private startNewGame(): void {
+  private startGame(): void {
     this.cameras.main.fadeOut(500, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('GameScene');
+      this.scene.start('PrologueScene');
     });
   }
 
   /**
-   * Continue existing game
+   * Continue saved game
    */
   private continueGame(): void {
-    // TODO: Load save data
-    this.startNewGame();
+    // TODO: Implement save/load system
+    this.showMessage('No save data found. Starting new game...');
+    this.time.delayedCall(1500, () => this.startGame());
   }
 
   /**
-   * Open Codex
+   * Show options menu
    */
-  private openCodex(): void {
-    // TODO: Implement Codex scene
-    console.log('Codex not implemented yet');
+  private showOptions(): void {
+    // TODO: Implement options menu
+    this.showMessage('Options coming soon!');
   }
 
   /**
-   * Open Settings
+   * Show codex
    */
-  private openSettings(): void {
-    // TODO: Implement Settings scene
-    console.log('Settings not implemented yet');
+  private showCodex(): void {
+    // TODO: Implement codex viewer
+    this.showMessage('Codex unlocks as you play!');
   }
 
   /**
-   * Create version info
+   * Show a temporary message
    */
-  private createVersionInfo(width: number, height: number): void {
-    this.add.text(width - 20, height - 20, 'v0.1 Early Access', {
-      fontSize: '10px',
-      fontFamily: 'monospace',
-      color: '#4a5568',
-    }).setOrigin(1, 1);
+  private showMessage(text: string): void {
+    const { width, height } = this.cameras.main;
     
-    // Controls hint
-    this.add.text(width / 2, height - 50, 'Use Arrow Keys / WASD to Navigate • ENTER to Select', {
-      fontSize: '10px',
+    const message = this.add.text(width / 2, height - 100, text, {
+      fontSize: '14px',
       fontFamily: 'monospace',
-      color: '#6b7280',
+      color: '#fbbf24',
+      backgroundColor: '#1a1a2e',
+      padding: { x: 16, y: 8 },
     }).setOrigin(0.5);
+    
+    this.tweens.add({
+      targets: message,
+      alpha: 0,
+      y: height - 120,
+      duration: 1500,
+      delay: 1000,
+      onComplete: () => message.destroy(),
+    });
   }
 }

@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import { BootScene } from '../scenes/BootScene';
 import { MenuScene } from '../scenes/MenuScene';
-import { GameScene } from '../scenes/GameScene';
+import { PrologueScene } from '../scenes/PrologueScene';
 import { Puzzle_P0_1_Scene } from '../scenes/Puzzle_P0_1_Scene';
 import { Puzzle_P0_2_Scene } from '../scenes/Puzzle_P0_2_Scene';
+import { Boss_Fractured_Sentinel_Scene } from '../scenes/Boss_Fractured_Sentinel_Scene';
 import { ConceptBridgeScene } from '../scenes/ConceptBridgeScene';
+import { GameScene } from '../scenes/GameScene';
 import { Room2Scene } from '../scenes/Room2Scene';
 import Puzzle_AP1_Scene from '../scenes/Puzzle_AP1_Scene';
 
@@ -36,12 +38,17 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   scene: [
     BootScene,
     MenuScene,
-    GameScene,
-    Room2Scene,
+    // Prologue region
+    PrologueScene,
     Puzzle_P0_1_Scene,
     Puzzle_P0_2_Scene,
-    Puzzle_AP1_Scene,
+    Boss_Fractured_Sentinel_Scene,
+    // Shared scenes
     ConceptBridgeScene,
+    // Legacy scenes (Array Plains)
+    GameScene,
+    Room2Scene,
+    Puzzle_AP1_Scene,
   ],
   
   // Pixel art rendering settings
@@ -90,6 +97,11 @@ export const GAME_CONSTANTS = {
     TEXT_LIGHT: 0xffffff,
     TEXT_MUTED: 0x9ca3af,
     TEXT_DARK: 0x4a5568,
+    
+    // Platform colors
+    PLATFORM_DARK: 0x1a1a2e,
+    PLATFORM_EDGE: 0x3a3a5e,
+    TILE_HIGHLIGHT: 0x5a5a7e,
   },
   
   // Regions
@@ -97,5 +109,12 @@ export const GAME_CONSTANTS = {
     PROLOGUE: 'prologue',
     ARRAY_PLAINS: 'array_plains',
     TWIN_RIVERS: 'twin_rivers',
+  },
+  
+  // Puzzle IDs
+  PUZZLES: {
+    P0_1: 'P0-1',
+    P0_2: 'P0-2',
+    BOSS_FRACTURED_SENTINEL: 'BOSS_FRACTURED_SENTINEL',
   },
 };
